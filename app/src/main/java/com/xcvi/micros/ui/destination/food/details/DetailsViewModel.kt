@@ -1,6 +1,7 @@
 package com.xcvi.micros.ui.destination.food.details
 
 import com.xcvi.micros.domain.FoodRepository
+import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.ui.BaseViewModel
 import com.xcvi.micros.ui.destination.food.add.AddViewModel
 
@@ -8,5 +9,23 @@ class DetailsViewModel(
     private val repository: FoodRepository
 ): BaseViewModel<DetailsViewModel.State>(State()){
 
-    class State
+    data class State(
+        val portion: Portion? = null,
+        val numberPickerValue: Int = 0
+    )
+
+    fun getData(meal: Int, date: Int, barcode: String, amount: Int){
+        updateData {
+            copy(portion = repository.getPortion(meal = meal, date = date, barcode = barcode), numberPickerValue = amount)
+        }
+    }
+
+    fun eat(date: Int, meal: Int, onFailure: () -> Unit, onSuccess: () -> Unit){
+        TODO()
+    }
+    fun updateNumberPickerValue(value: Int){
+        updateData {
+            copy(numberPickerValue = value)
+        }
+    }
 }

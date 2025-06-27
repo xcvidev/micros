@@ -37,4 +37,8 @@ class MealViewModel(
         repository.updatePortion(portion, portion.amount.previousAmount())
         getData(portion.date, portion.meal)
     }
+
+    fun saveCustomMeal(name: String){
+        repository.saveCustomMeal(name, state.portions)
+    }
 }

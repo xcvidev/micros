@@ -1,7 +1,6 @@
 package com.xcvi.micros.ui.destination
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBars
@@ -14,7 +13,6 @@ import androidx.compose.material.icons.outlined.Fastfood
 import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -78,7 +76,7 @@ fun Destinations(
                 }
                 slidingComposable<Food.Add> {
                     val args = it.toRoute<Food.Add>()
-                    AddScreen(navHostController = navController, date = args.date, meal = args.meal)
+                    AddScreen(navController = navController, date = args.date, meal = args.meal)
                 }
                 slidingComposable<Food.Scan> {
                     val args = it.toRoute<Food.Scan>()
@@ -86,7 +84,13 @@ fun Destinations(
                 }
                 slidingComposable<Food.Details> {
                     val args = it.toRoute<Food.Details>()
-                    DetailsScreen(navHostController = navController, date = args.date, meal = args.meal, amount = args.amount)
+                    DetailsScreen(
+                        navController = navController,
+                        date = args.date,
+                        meal = args.meal,
+                        amount = args.amount,
+                        barcode = args.barcode
+                    )
                 }
             }
         }
@@ -174,7 +178,8 @@ data object Food : Destination {
     data class Details(
         val meal: Int,
         val date: Int,
-        val amount: Int
+        val amount: Int,
+        val barcode: String,
     )
 
 }

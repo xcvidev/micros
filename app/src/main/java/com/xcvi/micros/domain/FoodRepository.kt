@@ -4,7 +4,7 @@ import com.xcvi.micros.ui.core.getToday
 
 class FoodRepository {
 
-    private val portions = (0..100).map {
+    val portions = (0..100).map {
         Portion(
             date = getToday() - (it % 7),
             meal = it % 6 + 1,
@@ -31,8 +31,14 @@ class FoodRepository {
     fun getSummary(date: Int): Portion {
         return portions.filter { it.date == date }.summary(date)
     }
-    fun getSummary(date: Int,meal: Int): Portion {
-        return portions.filter { it.date == date && it.meal == meal }.summary(date)
+    fun saveCustomMeal(name: String, portions: List<Portion>) = Unit
+
+    fun generate(date: Int, meal: Int, description: String): Portion?{
+        return portions.find { it.date == date && it.meal == meal }?.copy(name = description, date = date, meal = meal)
+    }
+
+    fun getPortion(meal: Int, date: Int, barcode: String): Portion? {
+        return portions.find { it.date == date && it.meal == meal && it.barcode == barcode }
     }
 
     fun getPortions(date: Int, meal: Int): List<Portion> {
