@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -40,6 +43,45 @@ android {
 }
 
 dependencies {
+    //scanner
+    implementation("androidx.camera:camera-camera2:1.3.3")
+    implementation("androidx.camera:camera-lifecycle:1.3.3")
+    implementation("androidx.camera:camera-view:1.3.3")
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    //serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
+
+    //room
+    implementation("androidx.room:room-runtime:2.7.1")
+    implementation("androidx.room:room-ktx:2.7.1")
+    ksp("androidx.room:room-compiler:2.7.1")
+
+    // Koin
+    implementation("io.insert-koin:koin-android:3.5.3")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+
+    //dateTime
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+    //dateTime
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+    //ktor
+    implementation ("io.ktor:ktor-client-core:1.6.3")
+    implementation ("io.ktor:ktor-client-android:1.6.3")
+    implementation ("io.ktor:ktor-client-serialization:1.6.3")
+    implementation("io.ktor:ktor-utils-jvm:1.6.3")
+
+    // Kotlin stdlib
+    implementation ("org.jetbrains.kotlin:kotlin-stdlib:2.1.21")
+
+    //compose
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

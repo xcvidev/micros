@@ -1,0 +1,206 @@
+package com.xcvi.micros.ui.core
+
+import android.os.Build
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import java.time.format.TextStyle
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateSelector(
+    currentDate: Int,
+    onDateChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 0.dp,
+    verticalPadding: Dp = 0.dp,
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    val localDate = getLocalDate(currentDate)
+    val dateFormatted = "${localDate.dayOfWeekFormatted(true)}, ${localDate.dayOfMonth} ${
+        localDate.monthFormatted(true)
+    } "
+
+
+    val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
+
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding, vertical = verticalPadding),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        IconButton(
+            onClick = { onDateChanged(currentDate - 1)},
+            modifier = modifier.weight(0.15f)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                modifier = modifier.size(60.dp),
+                contentDescription = ""
+            )
+        }
+        Button(
+            modifier = modifier.weight(0.7f),
+            onClick = {
+                showDatePicker = true
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            )
+        ) {
+            Text(
+                text = dateFormatted,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        IconButton(
+            enabled = currentDate < getToday(),
+            modifier = modifier.weight(0.15f),
+            onClick = { onDateChanged(currentDate +1)},
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                modifier = modifier.size(60.dp),
+                contentDescription = ""
+            )
+        }
+    }
+
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                Button(
+                    modifier = modifier.padding(4.dp),
+                    onClick = {
+                        showDatePicker = false
+                        onDateChanged(
+                            getLocalDateTime(
+                                datePickerState.selectedDateMillis ?: getNow()
+                            ).date.toEpochDays()
+                        )
+                    }) {
+                    Text(text = "Ok")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDatePicker = false },
+                    modifier = modifier.padding(4.dp)
+                ) {
+                    Text(text = "Cancel")
+                }
+            },
+            content = {
+                Column(modifier.padding(top = 24.dp)) {
+                    DatePicker(
+                        headline = null,
+                        title = null,
+                        state = datePickerState,
+                        modifier = modifier.fillMaxWidth(),
+                        showModeToggle = false,
+                        colors = DatePickerDefaults.colors(
+                            containerColor = Transparent
+                        )
+                    )
+                }
+            }
+        )
+    }
+
+
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+object PastOrPresentSelectableDates : SelectableDates {
+    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+        return utcTimeMillis <= System.currentTimeMillis()
+    }
+
+    override fun isSelectableYear(year: Int): Boolean {
+        return year <= getLocalDate(getToday()).year
+    }
+}
+
+fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val style = if (short) TextStyle.SHORT else TextStyle.FULL
+        this.dayOfWeek.getDisplayName(style, locale)
+    } else {
+        // Fallback: format manually (non-localized)
+        val name = this.dayOfWeek.name
+        if (short) name.substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
+        else name.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
+
+fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val style = if (short) TextStyle.SHORT else TextStyle.FULL
+        this.month.getDisplayName(style, locale)
+    } else {
+        // Fallback: format manually (non-localized)
+        val name = this.month.name
+        if (short) name.substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
+        else name.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
+
+fun getLocalDate(epochDays: Int): LocalDate {
+    return LocalDate.fromEpochDays(epochDays)
+}
+
+
+fun getNow(): Long {
+    return System.currentTimeMillis()
+}
+
+fun getToday(): Int {
+    val instant = Instant.fromEpochMilliseconds(getNow())
+    val timeZone = TimeZone.currentSystemDefault()
+    return instant.toLocalDateTime(timeZone).date.toEpochDays()
+}
+fun getLocalDateTime(timestamp: Long): LocalDateTime {
+    val instant = Instant.fromEpochMilliseconds(timestamp)
+    val timeZone = TimeZone.currentSystemDefault()
+    return instant.toLocalDateTime(timeZone)
+}

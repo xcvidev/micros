@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Micros</string>
+    <string name="bottombar_label_food">Food</string>
+    <string name="bottombar_label_weight">Weight</string>
+    <string name="bottombar_label_stats">Stats</string>
 </resources>
