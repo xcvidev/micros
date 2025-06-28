@@ -31,7 +31,7 @@ class FoodRepository {
 
 
     fun getSummary(date: Int): Portion {
-        return portions.filter { it.date == date }.summary(date)
+        return portions.filter { it.date == date }.summary()
     }
     fun saveCustomMeal(name: String, portions: List<Portion>) = Unit
 
@@ -105,9 +105,9 @@ class Minerals
 class Vitamins
 class AminoAcids
 
-fun List<Portion>.summary(date: Int): Portion {
+fun List<Portion>.summary(): Portion {
     return this.fold(Portion(
-        date = date,
+        date = 0,
         meal = 0,
         barcode = "",
         name = "",

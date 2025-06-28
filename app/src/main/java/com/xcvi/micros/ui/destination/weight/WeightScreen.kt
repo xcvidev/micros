@@ -1,6 +1,7 @@
 package com.xcvi.micros.ui.destination.weight
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -70,33 +71,35 @@ fun WeightScreen(
                     text = "Current weight: ${currentWeight.value} ${currentWeight.unit}",
                     modifier = modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize
                 )
 
-                LazyColumn {
+                LazyColumn{
                     item {
-                        DecimalNumberPicker(
-                            initialValue = currentWeight.value.roundDecimals(),
-                            onValueChange = { number ->
-                                viewModel.setNumberPickerValue(number)
-                                if(!isEditing){
-                                    isEditing = (number != currentWeight.value)
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            DecimalNumberPicker(
+                                initialValue = currentWeight.value.roundDecimals(),
+                                onValueChange = { number ->
+                                    viewModel.setNumberPickerValue(number)
+                                    if (!isEditing) {
+                                        isEditing = (number != currentWeight.value)
+                                    }
                                 }
-                            }
-                        )
-                    }
-                    item {
-                        AnimatedVisibility(isEditing) {
-                            Button(
-                                modifier = modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                onClick = {
-                                    isEditing = false
-                                    viewModel.save()
+                            )
+                            AnimatedVisibility(isEditing) {
+                                Button(
+                                    modifier = modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    onClick = {
+                                        isEditing = false
+                                        viewModel.save()
+                                    }
+                                ) {
+                                    Text(text = "Save")
                                 }
-                            ) {
-                                Text(text = "Save")
                             }
                         }
                     }

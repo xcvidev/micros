@@ -6,8 +6,6 @@ import com.xcvi.micros.domain.summary
 import com.xcvi.micros.ui.BaseViewModel
 import com.xcvi.micros.ui.core.nextAmount
 import com.xcvi.micros.ui.core.previousAmount
-import com.xcvi.micros.ui.destination.food.add.AddViewModel
-import com.xcvi.micros.ui.destination.food.details.DetailsViewModel
 
 class MealViewModel(
     private val repository: FoodRepository
@@ -23,7 +21,7 @@ class MealViewModel(
         val portions = repository.getPortions(date, meal)
         updateData {
             copy(
-                summary = portions.summary(date),
+                summary = portions.summary(),
                 portions = repository.getPortions(date, meal),
             )
         }
