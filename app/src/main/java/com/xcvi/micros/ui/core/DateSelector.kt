@@ -30,8 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.xcvi.micros.R
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -51,10 +53,15 @@ fun DateSelector(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val localDate = getLocalDate(currentDate)
-    val dateFormatted = "${localDate.dayOfWeekFormatted(true)}, ${localDate.dayOfMonth} ${
-        localDate.monthFormatted(true)
+    val dateFormatted = "${localDate.dayOfWeekFormatted(true).replaceFirstChar { it.uppercase() }}, ${localDate.dayOfMonth} ${
+        localDate.monthFormatted(true).replaceFirstChar { it.uppercase() }
     } "
 
+    val buttonText = if (currentDate == getToday()) {
+        stringResource(R.string.today)
+    } else {
+        dateFormatted
+    }
 
     val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
 
@@ -68,16 +75,15 @@ fun DateSelector(
 
         IconButton(
             onClick = { onDateChanged(currentDate - 1)},
-            modifier = modifier.weight(0.15f)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                modifier = modifier.size(60.dp),
-                contentDescription = ""
+                contentDescription = "",
             )
         }
+
         Button(
-            modifier = modifier.weight(0.7f),
+            modifier = Modifier.weight(1f),
             onClick = {
                 showDatePicker = true
             },
@@ -85,20 +91,19 @@ fun DateSelector(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
         ) {
-            Text(
-                text = dateFormatted,
-                color = MaterialTheme.colorScheme.onSurface
+            StreamingText(
+                fullText = buttonText,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize
             )
         }
         IconButton(
             enabled = currentDate < getToday(),
-            modifier = modifier.weight(0.15f),
             onClick = { onDateChanged(currentDate +1)},
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                modifier = modifier.size(60.dp),
-                contentDescription = ""
+                contentDescription = "",
             )
         }
     }
@@ -176,7 +181,7 @@ fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale
 fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val style = if (short) TextStyle.SHORT else TextStyle.FULL
-        this.month.getDisplayName(style, locale)
+        this.month.getDisplayName(style, locale).replaceFirstChar { it.uppercase() }
     } else {
         // Fallback: format manually (non-localized)
         val name = this.month.name

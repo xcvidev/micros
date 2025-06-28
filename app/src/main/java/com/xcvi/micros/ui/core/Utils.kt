@@ -44,6 +44,15 @@ fun Double.formatClean(): String {
         return "0"
     }
 }
+fun Double.roundDecimals(): Double {
+    try{
+        val rounded = (this * 10).roundToInt() / 10.0
+        return rounded
+    } catch (e: Exception) {
+        return 0.0
+    }
+}
+
 
 
 

@@ -38,7 +38,11 @@ import com.xcvi.micros.ui.destination.food.dashboard.FoodScreen
 import com.xcvi.micros.ui.destination.food.details.DetailsScreen
 import com.xcvi.micros.ui.destination.food.meal.MealScreen
 import com.xcvi.micros.ui.destination.food.scan.ScanScreen
+import com.xcvi.micros.ui.destination.stats.StatsScreen
+import com.xcvi.micros.ui.destination.weight.WeightScreen
+import com.xcvi.micros.ui.destination.weight.WeightViewModel
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -56,34 +60,37 @@ fun Destinations(
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.systemBars),
                 navController = navController,
-                startDestination = Food.label
+                startDestination = FoodGraph.label
             ) {
                 //main graph
-                composable(Food.label) {
+                composable(FoodGraph.label) {
                     FoodScreen(navController, scaffoldPadding.calculateBottomPadding())
                 }
-                composable(Weight.label) {
-                    //WeightScreen(navController, scaffoldPadding)
+                composable(WeightGraph.label) {
+                    WeightScreen(
+                        navController = navController,
+                        bottomBarPadding = scaffoldPadding.calculateBottomPadding(),
+                    )
                 }
-                composable(Stats.label) {
-                    //StatsScreen(navController, scaffoldPadding)
+                composable(StatsGraph.label) {
+                    StatsScreen(navController = navController,bottomBarPadding = scaffoldPadding.calculateBottomPadding())
                 }
 
                 //food graph
-                slidingComposable<Food.Meal> {
-                    val args = it.toRoute<Food.Meal>()
+                slidingComposable<FoodGraph.Meal> {
+                    val args = it.toRoute<FoodGraph.Meal>()
                     MealScreen(navController = navController, date = args.date, meal = args.meal)
                 }
-                slidingComposable<Food.Add> {
-                    val args = it.toRoute<Food.Add>()
+                slidingComposable<FoodGraph.Add> {
+                    val args = it.toRoute<FoodGraph.Add>()
                     AddScreen(navController = navController, date = args.date, meal = args.meal)
                 }
-                slidingComposable<Food.Scan> {
-                    val args = it.toRoute<Food.Scan>()
+                slidingComposable<FoodGraph.Scan> {
+                    val args = it.toRoute<FoodGraph.Scan>()
                     ScanScreen(navHostController =  navController, date = args.date, meal = args.meal)
                 }
-                slidingComposable<Food.Details> {
-                    val args = it.toRoute<Food.Details>()
+                slidingComposable<FoodGraph.Details> {
+                    val args = it.toRoute<FoodGraph.Details>()
                     DetailsScreen(
                         navController = navController,
                         date = args.date,
@@ -105,7 +112,7 @@ fun BottomBar(
     val currentDestination = getCurrentTypedDestination(currentEntry)
 
     val bottomBarDestinations = listOf(
-        Food, Weight, Stats
+        FoodGraph, WeightGraph, StatsGraph
     )
     val showBottomBar = currentDestination in bottomBarDestinations
     if (showBottomBar) {
@@ -113,9 +120,9 @@ fun BottomBar(
             bottomBarDestinations.forEach { destination ->
                 val selected = currentDestination == destination
                 val label = when (destination) {
-                    Food -> stringResource(R.string.bottombar_label_food)
-                    Weight -> stringResource(R.string.bottombar_label_weight)
-                    Stats -> stringResource(R.string.bottombar_label_stats)
+                    FoodGraph -> stringResource(R.string.bottombar_label_food)
+                    WeightGraph -> stringResource(R.string.bottombar_label_weight)
+                    StatsGraph -> stringResource(R.string.bottombar_label_stats)
                 }
                 NavigationBarItem(
                     selected = selected,
@@ -151,7 +158,7 @@ sealed interface Destination {
 }
 
 @Serializable
-data object Food : Destination {
+data object FoodGraph : Destination {
     override val label = "food_label"
     override val selectedIcon = Icons.Filled.Fastfood
     override val unselectedIcon = Icons.Outlined.Fastfood
@@ -185,14 +192,14 @@ data object Food : Destination {
 }
 
 @Serializable
-data object Weight : Destination {
+data object WeightGraph : Destination {
     override val label = "weight_label"
     override val selectedIcon = Icons.Filled.MonitorWeight
     override val unselectedIcon = Icons.Outlined.MonitorWeight
 }
 
 @Serializable
-data object Stats : Destination {
+data object StatsGraph : Destination {
     override val label = "stats_label"
     override val selectedIcon = Icons.Filled.QueryStats
     override val unselectedIcon = Icons.Outlined.QueryStats
@@ -202,9 +209,9 @@ data object Stats : Destination {
 fun getCurrentTypedDestination(entry: NavBackStackEntry?): Destination? {
     entry?.destination?.hierarchy?.forEach { destination ->
         when (destination.route) {
-            Food.label -> return Food
-            Weight.label-> return Weight
-            Stats.label -> return Stats
+            FoodGraph.label -> return FoodGraph
+            WeightGraph.label-> return WeightGraph
+            StatsGraph.label -> return StatsGraph
         }
     }
     return null

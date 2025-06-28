@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -51,6 +52,7 @@ import kotlin.math.roundToInt
 fun DecimalNumberPicker(
     onValueChange: (Double) -> Unit,
     modifier: Modifier = Modifier,
+    showInputField: Boolean = false,
     tickColor: Color = MaterialTheme.colorScheme.onSurface,
     numberColor: Color = MaterialTheme.colorScheme.onSurface,
     indicatorTickColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -73,7 +75,7 @@ fun DecimalNumberPicker(
     val scope = rememberCoroutineScope()
 
     val scrollState = rememberScrollableState { delta ->
-        val newOffset = (scrollOffsetAnim.value - delta).coerceIn(0f, maxOffset.toFloat())
+        val newOffset = (scrollOffsetAnim.value - delta).coerceIn(0f, maxOffset)
         val consumed = scrollOffsetAnim.value - newOffset
         scope.launch { scrollOffsetAnim.snapTo(newOffset) }
         consumed
@@ -81,8 +83,20 @@ fun DecimalNumberPicker(
 
     val rawIndex = scrollOffsetAnim.value / tickSpacingPx
     val clampedIndex = rawIndex.roundToInt().coerceIn(0, totalTicks)
-    val currentValue = valueRange.start + clampedIndex * clickGranularity
-    onValueChange(currentValue)
+
+    /*
+    val currentValue = (valueRange.start + clampedIndex * clickGranularity).roundDecimals()
+    onValueChange(currentValue.roundDecimals())
+     */
+    val currentValue = (valueRange.start + clampedIndex * clickGranularity).roundDecimals()
+
+    var lastValue by remember { mutableStateOf<Double?>(null) }
+    val roundedValue = currentValue.roundDecimals()
+    if (lastValue != roundedValue) {
+        lastValue = roundedValue
+        onValueChange(roundedValue)
+    }
+
 
     LaunchedEffect(scrollState.isScrollInProgress) {
         if (!scrollState.isScrollInProgress) {
@@ -110,7 +124,8 @@ fun DecimalNumberPicker(
                     val tappedValue = valueRange.start + closestGranularityIndex * clickGranularity
 
                     if (tappedValue in valueRange) {
-                        val tickX = centerX - scrollOffsetAnim.value + (tappedValue - valueRange.start) / clickGranularity * tickSpacingPx
+                        val tickX =
+                            centerX - scrollOffsetAnim.value + (tappedValue - valueRange.start) / clickGranularity * tickSpacingPx
                         val tapY = offset.y
 
                         if (
@@ -164,6 +179,7 @@ fun DecimalNumberPicker(
             }
         }
 
+
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -171,7 +187,6 @@ fun DecimalNumberPicker(
                 .height(50.dp)
                 .background(indicatorTickColor)
         )
-
         var textValue by remember { mutableStateOf("%.${decimalPlaces}f".format(currentValue)) }
         var isEditing by remember { mutableStateOf(false) }
 
@@ -183,48 +198,68 @@ fun DecimalNumberPicker(
 
         val focusRequester = remember { FocusRequester() }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .offset(y = (-32).dp)
-                .background(
-                    color = textFieldContainerColor,
-                    shape = RoundedCornerShape(8.dp)
-                )
-        ) {
-            TextField(
-                value = textValue,
-                onValueChange = { newValue ->
-                    textValue = newValue
-                    newValue.toDoubleOrNull()?.let { entered ->
-                        if (entered in valueRange) {
-                            val targetOffset =
-                                ((entered - valueRange.start) / clickGranularity) * tickSpacingPx
-                            scope.launch {
-                                scrollOffsetAnim.animateTo(targetOffset.toFloat())
-                            }
-                        }
-                    }
-                },
+        if (showInputField) {
+            Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .width(80.dp)
-                    .focusRequester(focusRequester)
-                    .onFocusChanged { isEditing = it.isFocused },
-                singleLine = true,
-                textStyle = LocalTextStyle.current.copy(
+                    .offset(y = (-32).dp)
+                    .background(
+                        color = textFieldContainerColor,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                TextField(
+                    value = textValue,
+                    onValueChange = { newValue ->
+                        textValue = newValue
+                        newValue.toDoubleOrNull()?.let { entered ->
+                            if (entered in valueRange) {
+                                val targetOffset =
+                                    ((entered - valueRange.start) / clickGranularity) * tickSpacingPx
+                                scope.launch {
+                                    scrollOffsetAnim.animateTo(targetOffset.toFloat())
+                                }
+                            }
+                        }
+
+                    },
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .width(80.dp)
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { isEditing = it.isFocused },
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(
+                        color = numberColor,
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-32).dp)
+                    .background(
+                        color = textFieldContainerColor,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                Text(
+                    text = textValue,
+                    modifier = Modifier.align(Alignment.Center),
                     color = numberColor,
                     fontSize = 18.sp,
-                    textAlign = TextAlign.Center
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
                 )
-            )
+            }
         }
     }
 }

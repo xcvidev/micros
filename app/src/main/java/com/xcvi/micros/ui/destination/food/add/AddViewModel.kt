@@ -13,19 +13,16 @@ class AddViewModel(
 
     data class State(
         val query: String = "",
-        val portions: List<Portion> = emptyList(),
         val isGenerating: Boolean = false,
+
+        val portions: List<Portion> = emptyList(),
+        val generated: Portion? = null
     )
 
     fun getData() {
-        updateData { copy(portions = repository.portions.sortedByDescending { it.date }) }
-    }
-
-    fun setQuery(query: String) {
         updateData {
             copy(
-                query = query,
-                portions = repository.portions.filter { it.name.contains(query) }
+                portions = repository.portions.sortedByDescending { it.date },
             )
         }
     }
@@ -35,11 +32,17 @@ class AddViewModel(
             updateData { copy(isGenerating = true) }
             delay(3000)
             val generated = repository.generate(date = date, meal = meal, description = state.query)
-            if (generated == null) {
-                updateData { copy(isGenerating = false) }
-                return@launch
-            }
-            updateData { copy(isGenerating = false, portions = listOf(generated)) }
+            updateData { copy(isGenerating = false, portions = emptyList(), generated = generated) }
+        }
+    }
+
+    fun setQuery(query: String) {
+        updateData {
+            copy(
+                query = query,
+                portions = repository.portions.filter { it.name.contains(other = query, ignoreCase = true) },
+                generated = null
+            )
         }
     }
 }

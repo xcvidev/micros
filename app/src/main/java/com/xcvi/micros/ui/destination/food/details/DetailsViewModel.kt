@@ -21,7 +21,7 @@ class DetailsViewModel(
     }
 
     fun eat(date: Int, meal: Int, onFailure: () -> Unit, onSuccess: () -> Unit){
-        TODO()
+        onSuccess()
     }
     fun updateNumberPickerValue(value: Int){
         updateData {

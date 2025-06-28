@@ -2,7 +2,6 @@ package com.xcvi.micros.ui.destination.food.meal
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +37,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.ui.core.OnNavigation
-import com.xcvi.micros.ui.destination.Food
+import com.xcvi.micros.ui.destination.FoodGraph
+import com.xcvi.micros.ui.destination.food.SummaryCard
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -69,20 +68,10 @@ fun MealScreen(
         )
     }
 
-    val mealName = when (meal) {
-        1 -> "Breakfast"
-        2 -> "Lunch"
-        3 -> "Dinner"
-        4 -> "Snack 1"
-        5 -> "Snack 2"
-        6 -> "Snack 3"
-        else -> ""
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = mealName) },
+                title = { Text(text = "Meal $meal") },
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -97,7 +86,7 @@ fun MealScreen(
         floatingActionButton = {
             LargeFloatingActionButton(
                 onClick = {
-                    navController.navigate(Food.Add(meal = meal, date = date))
+                    navController.navigate(FoodGraph.Add(meal = meal, date = date))
                 }
             ) {
                 Icon(Icons.Default.Add, "")
@@ -112,17 +101,11 @@ fun MealScreen(
                 .padding(it)
         ) {
             item {
-                ListItem(
-                    headlineContent = {
-                        Text(text = "Calories: ${summary?.calories ?: 0}")
-                    },
-                    supportingContent = {
-                        Column {
-                            Text(text = "Protein: ${summary?.macros?.protein ?: 0}")
-                            Text(text = "Carbs: ${summary?.macros?.carbs ?: 0}")
-                            Text(text = "Fats: ${summary?.macros?.fats ?: 0}")
-                        }
-                    }
+                SummaryCard(
+                    calories = summary?.calories?.roundToInt() ?: 0,
+                    protein = summary?.macros?.protein ?: 0.0,
+                    carbs = summary?.macros?.carbs ?: 0.0,
+                    fats = summary?.macros?.fats ?: 0.0
                 )
             }
 
@@ -143,7 +126,7 @@ fun MealScreen(
                 ListItem(
                     modifier = modifier.clickable {
                         navController.navigate(
-                            Food.Details(
+                            FoodGraph.Details(
                                 meal = meal,
                                 date = date,
                                 amount = item.amount.roundToInt(),
@@ -168,6 +151,8 @@ fun MealScreen(
                         }
                     }
                 )
+            }
+            item {
                 HorizontalDivider()
             }
         }

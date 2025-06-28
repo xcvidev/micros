@@ -1,6 +1,7 @@
 package com.xcvi.micros.ui.destination.food.add
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,11 +35,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.ui.core.BackIcon
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.core.StreamingText
-import com.xcvi.micros.ui.destination.Food
-import com.xcvi.micros.ui.destination.food.dashboard.MacrosCard
+import com.xcvi.micros.ui.destination.FoodGraph
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -70,51 +71,112 @@ fun AddScreen(
                     viewModel.generate(date = date, meal = meal)
                 },
                 onStop = { },
-                onScan = { navController.navigate(Food.Scan(meal = meal, date = date)) },
+                onScan = { navController.navigate(FoodGraph.Scan(meal = meal, date = date)) },
                 query = viewModel.state.query,
                 onQueryChange = { viewModel.setQuery(it) },
                 placeHolder = "Describe food",
             )
             val portions = viewModel.state.portions
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (viewModel.state.isGenerating) {
-                    item {
+            val generated = viewModel.state.generated
+            LazyColumn{
+                when {
+                    viewModel.state.isGenerating -> item {
                         StreamingText(
                             fullText = "Generating...",
                             modifier = Modifier.padding(16.dp)
                         )
                     }
-                } else {
-                    items(portions) { recent ->
-                        HorizontalDivider()
-                        Card(
-                            onClick = {
-                                navController.navigate(
-                                    Food.Details(
-                                        meal = meal,
-                                        date = date,
-                                        amount = recent.amount.roundToInt(),
-                                        barcode = recent.barcode
-                                    )
-                                )
-                            },
+
+                    generated != null -> item {
+                        PortionItem(
+                            portion = generated,
+                            streamContent = true
                         ) {
-                            ListItem(
-                                headlineContent = { Text(recent.name) },
-                                supportingContent = {
-                                    Column {
-                                        Text(text = "Protein: ${recent.macros.protein} g")
-                                        Text(text = "Carbs: ${recent.macros.carbs} g")
-                                        Text(text = "Fats: ${recent.macros.fats} g")
-                                    }
-                                },
+                            navController.navigate(
+                                FoodGraph.Details(
+                                    meal = meal,
+                                    date = date,
+                                    amount = generated.amount.roundToInt(),
+                                    barcode = generated.barcode
+                                )
+                            )
+                        }
+                    }
+
+                    viewModel.state.generated == null -> items(portions) { recent ->
+                        PortionItem(
+                            portion = recent,
+                        ) {
+                            navController.navigate(
+                                FoodGraph.Details(
+                                    meal = meal,
+                                    date = date,
+                                    amount = recent.amount.roundToInt(),
+                                    barcode = recent.barcode
+                                )
                             )
                         }
                     }
                 }
+
             }
+        }
+    }
+}
+
+@Composable
+fun PortionItem(
+    portion: Portion,
+    modifier: Modifier = Modifier,
+    streamContent: Boolean = false,
+    onClick: () -> Unit
+) {
+
+    Card(
+        onClick = onClick,
+    ) {
+        HorizontalDivider()
+        ListItem(
+            modifier = modifier,
+            headlineContent = {
+                if (streamContent) {
+                    Box {
+                        StreamingText(
+                            charDelayMillis = 30,
+                            fullText = """
+                                ${portion.name}
+                                    
+                                Calories: ${portion.calories} kcal, ${portion.amount} g
+                                    
+                                Protein: ${portion.macros.protein} g
+                                Carbs: ${portion.macros.carbs} g
+                                Fats: ${portion.macros.fats} g
+                                """.trimIndent(),
+                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                            fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                } else {
+                    Text(
+                        text = """
+                        ${portion.name}
+                                    
+                        Calories: ${portion.calories} kcal, ${portion.amount} g
+
+                        Protein: ${portion.macros.protein} g
+                        Carbs: ${portion.macros.carbs} g
+                        Fats: ${portion.macros.fats} g
+                        """.trimIndent(),
+                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                        fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            },
+        )
+        if (streamContent) {
+            HorizontalDivider()
         }
     }
 }

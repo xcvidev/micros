@@ -1,10 +1,7 @@
 package com.xcvi.micros.ui.destination.food.details
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,15 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.ui.core.NumberPicker
 import com.xcvi.micros.ui.core.OnNavigation
-import com.xcvi.micros.ui.core.StreamingText
 import com.xcvi.micros.ui.core.rememberShakeOffset
-import com.xcvi.micros.ui.destination.Destination
-import com.xcvi.micros.ui.destination.Food
+import com.xcvi.micros.ui.destination.FoodGraph
+import com.xcvi.micros.ui.destination.food.add.PortionItem
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +56,7 @@ fun DetailsScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = portion.name) },
+                    title = {  },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
@@ -81,11 +77,14 @@ fun DetailsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                item { StreamingText(portion.macros.toString()) }
+                item {
+                    Text(text = portion.name, fontSize = MaterialTheme.typography.titleLarge.fontSize)
+                }
                 item {
                     NumberPicker(
                         initialValue = amount,
                         onValueChange = viewModel::updateNumberPickerValue,
+                        clickGranularity = 1
                     )
                 }
                 item {
@@ -99,10 +98,10 @@ fun DetailsScreen(
                                 },
                                 onSuccess = {
                                     navController.navigate(
-                                        Food.Meal(date = date, meal = meal)
+                                        FoodGraph.Meal(date = date, meal = meal)
                                     ) {
-                                        popUpTo(Food.label) {
-                                            inclusive = false
+                                        popUpTo(FoodGraph.Meal(date = date, meal = meal)) {
+                                            inclusive = true
                                         }
                                     }
                                 }
@@ -110,6 +109,13 @@ fun DetailsScreen(
                         }
                     ) {
                         Text(text = "Ok")
+                    }
+                }
+                item{
+                    PortionItem(
+                        portion = portion,
+                        streamContent = false
+                    ) {
                     }
                 }
             }

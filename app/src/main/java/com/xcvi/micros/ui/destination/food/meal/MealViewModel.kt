@@ -15,6 +15,7 @@ class MealViewModel(
 
     data class State(
         val summary: Portion? = null,
+        val mealLabel:String = "",
         val portions: List<Portion> = emptyList()
     )
 

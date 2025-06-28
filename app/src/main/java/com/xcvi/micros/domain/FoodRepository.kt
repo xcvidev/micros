@@ -9,7 +9,7 @@ class FoodRepository {
             date = getToday() - (it % 7),
             meal = it % 6 + 1,
             barcode = "$it",
-            name = "Food $it",
+            name = "Food $it very long food name that goes outside card",
             brand = "",
             calories = if(it % 2 == 0) 100.0+it else 0.0,
             amount = if(it % 2 == 0) 100.0 else it+50.0,
@@ -28,13 +28,35 @@ class FoodRepository {
         )
     }.toMutableList()
 
+
+
     fun getSummary(date: Int): Portion {
         return portions.filter { it.date == date }.summary(date)
     }
     fun saveCustomMeal(name: String, portions: List<Portion>) = Unit
 
     fun generate(date: Int, meal: Int, description: String): Portion?{
-        return portions.find { it.date == date && it.meal == meal }?.copy(name = description, date = date, meal = meal)
+        return Portion(
+            date = date,
+            meal = meal,
+            barcode = "",
+            name = description,
+            brand = "",
+            calories = 0.0,
+            amount = 0.0,
+            macros = Macros(
+                protein = 30.0,
+                carbs = 20.0,
+                fats = 50.0,
+                saturatedFats = 0.0,
+                sugars = 0.0,
+                salt = 0.0,
+                fiber = 0.0
+            ),
+            minerals = Minerals(),
+            vitamins = Vitamins(),
+            aminoAcids = AminoAcids()
+        )
     }
 
     fun getPortion(meal: Int, date: Int, barcode: String): Portion? {

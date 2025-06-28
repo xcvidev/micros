@@ -1,11 +1,9 @@
 package com.xcvi.micros.ui.destination.food.dashboard
 
-import androidx.room.util.copy
 import com.xcvi.micros.domain.FoodRepository
 import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.ui.BaseViewModel
 import com.xcvi.micros.ui.core.getToday
-import com.xcvi.micros.ui.destination.Food
 
 class FoodViewModel(
     private val repository: FoodRepository
@@ -13,13 +11,19 @@ class FoodViewModel(
 
     data class State(
         val date: Int = getToday(),
-        val summary: Portion? = null
+        val summary: Portion? = null,
+        val meals: Map<Int,List<Portion>> = (1..6).associateWith { emptyList() }
     )
 
     fun getData(date: Int){
+        val meals = (1..6).associateWith { mealNumber ->
+            repository.portions.filter { it.date == date && it.meal == mealNumber }
+        }.toMutableMap()
         updateData {
-            copy(summary = repository.getSummary(date))
-
+            copy(
+                summary = repository.getSummary(date),
+                meals = meals
+            )
         }
     }
 

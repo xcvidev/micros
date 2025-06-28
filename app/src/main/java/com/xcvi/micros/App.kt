@@ -2,11 +2,14 @@ package com.xcvi.micros
 
 import android.app.Application
 import com.xcvi.micros.domain.FoodRepository
+import com.xcvi.micros.domain.WeightRepository
 import com.xcvi.micros.ui.destination.food.add.AddViewModel
 import com.xcvi.micros.ui.destination.food.dashboard.FoodViewModel
 import com.xcvi.micros.ui.destination.food.details.DetailsViewModel
 import com.xcvi.micros.ui.destination.food.meal.MealViewModel
 import com.xcvi.micros.ui.destination.food.scan.ScanViewModel
+import com.xcvi.micros.ui.destination.stats.StatsViewModel
+import com.xcvi.micros.ui.destination.weight.WeightViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.GlobalContext.startKoin
@@ -35,10 +38,13 @@ class App : Application() {
             viewModel { AddViewModel(get()) }
             viewModel { ScanViewModel(get()) }
             viewModel { DetailsViewModel(get()) }
+            viewModel { WeightViewModel(get()) }
+            viewModel { StatsViewModel(get(), get()) }
         }
 
         val repositoryModule = module {
             single { FoodRepository() }
+            single { WeightRepository() }
         }
 
         val apiModule = module {
