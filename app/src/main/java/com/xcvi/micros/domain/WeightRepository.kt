@@ -1,21 +1,16 @@
 package com.xcvi.micros.domain
 
-import android.icu.util.TimeZone.SystemTimeZoneType
-import com.xcvi.micros.ui.core.getLocalDate
-import com.xcvi.micros.ui.core.getToday
-import com.xcvi.micros.ui.core.roundDecimals
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
 import kotlin.random.Random
 
 class WeightRepository {
 
     val weights = (0..100).map {
         Weight(
-            timestamp = getLocalDate((getToday() - (it % 7))).atStartOfDayIn(TimeZone.currentSystemDefault()).epochSeconds,
+            timestamp = (getToday()-it).getStartTimestamp(),
             value = Random.nextDouble(60.0, 80.0).roundDecimals()
         )
     }.sortedByDescending{ it.timestamp }.toMutableList()
+
 
 }
 

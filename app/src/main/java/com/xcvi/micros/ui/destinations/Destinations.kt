@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination
+package com.xcvi.micros.ui.destinations
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,16 +33,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.xcvi.micros.R
 import com.xcvi.micros.ui.core.slidingComposable
-import com.xcvi.micros.ui.destination.food.add.AddScreen
-import com.xcvi.micros.ui.destination.food.dashboard.FoodScreen
-import com.xcvi.micros.ui.destination.food.details.DetailsScreen
-import com.xcvi.micros.ui.destination.food.meal.MealScreen
-import com.xcvi.micros.ui.destination.food.scan.ScanScreen
-import com.xcvi.micros.ui.destination.stats.StatsScreen
-import com.xcvi.micros.ui.destination.weight.WeightScreen
-import com.xcvi.micros.ui.destination.weight.WeightViewModel
+import com.xcvi.micros.ui.destinations.food.add.AddScreen
+import com.xcvi.micros.ui.destinations.food.dashboard.FoodScreen
+import com.xcvi.micros.ui.destinations.food.details.DetailsScreen
+import com.xcvi.micros.ui.destinations.food.meal.MealScreen
+import com.xcvi.micros.ui.destinations.food.scan.ScanScreen
+import com.xcvi.micros.ui.destinations.stats.StatsScreen
+import com.xcvi.micros.ui.destinations.weight.WeightScreen
 import kotlinx.serialization.Serializable
-import org.koin.androidx.compose.koinViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

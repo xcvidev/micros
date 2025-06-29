@@ -1,11 +1,11 @@
-package com.xcvi.micros.ui.destination.food.meal
+package com.xcvi.micros.ui.destinations.food.meal
 
 import com.xcvi.micros.domain.FoodRepository
 import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.domain.summary
 import com.xcvi.micros.ui.BaseViewModel
-import com.xcvi.micros.ui.core.nextAmount
-import com.xcvi.micros.ui.core.previousAmount
+import com.xcvi.micros.domain.nextAmount
+import com.xcvi.micros.domain.previousAmount
 
 class MealViewModel(
     private val repository: FoodRepository

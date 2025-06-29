@@ -1,9 +1,9 @@
-package com.xcvi.micros.ui.destination.food.dashboard
+package com.xcvi.micros.ui.destinations.food.dashboard
 
 import com.xcvi.micros.domain.FoodRepository
 import com.xcvi.micros.domain.Portion
+import com.xcvi.micros.domain.getToday
 import com.xcvi.micros.ui.BaseViewModel
-import com.xcvi.micros.ui.core.getToday
 
 class FoodViewModel(
     private val repository: FoodRepository

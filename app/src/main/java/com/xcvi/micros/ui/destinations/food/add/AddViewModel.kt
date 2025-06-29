@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination.food.add
+package com.xcvi.micros.ui.destinations.food.add
 
 import androidx.lifecycle.viewModelScope
 import com.xcvi.micros.domain.FoodRepository

@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination.food.add
+package com.xcvi.micros.ui.destinations.food.add
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +30,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Transparent
@@ -39,7 +40,7 @@ import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.ui.core.BackIcon
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.core.StreamingText
-import com.xcvi.micros.ui.destination.FoodGraph
+import com.xcvi.micros.ui.destinations.FoodGraph
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -52,7 +53,7 @@ fun AddScreen(
     modifier: Modifier = Modifier,
     viewModel: AddViewModel = koinViewModel()
 ) {
-
+    val state = viewModel.state
     OnNavigation {
         viewModel.getData()
     }
@@ -66,21 +67,21 @@ fun AddScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             PromptField(
-                isGenerating = viewModel.state.isGenerating,
+                isGenerating = state.isGenerating,
                 onPrompt = {
                     viewModel.generate(date = date, meal = meal)
                 },
                 onStop = { },
                 onScan = { navController.navigate(FoodGraph.Scan(meal = meal, date = date)) },
-                query = viewModel.state.query,
+                query = state.query,
                 onQueryChange = { viewModel.setQuery(it) },
                 placeHolder = "Describe food",
             )
-            val portions = viewModel.state.portions
-            val generated = viewModel.state.generated
+            val portions = state.portions
+            val generated = state.generated
             LazyColumn{
                 when {
-                    viewModel.state.isGenerating -> item {
+                    state.isGenerating -> item {
                         StreamingText(
                             fullText = "Generating...",
                             modifier = Modifier.padding(16.dp)
@@ -103,7 +104,7 @@ fun AddScreen(
                         }
                     }
 
-                    viewModel.state.generated == null -> items(portions) { recent ->
+                    state.generated == null -> items(portions) { recent ->
                         PortionItem(
                             portion = recent,
                         ) {

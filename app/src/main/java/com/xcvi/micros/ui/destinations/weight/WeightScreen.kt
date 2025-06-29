@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination.weight
+package com.xcvi.micros.ui.destinations.weight
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -22,17 +22,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.xcvi.micros.domain.formatTimestamp
 import com.xcvi.micros.ui.core.DecimalNumberPicker
 import com.xcvi.micros.ui.core.OnNavigation
-import com.xcvi.micros.ui.core.getLocalDateTime
-import com.xcvi.micros.ui.core.keyboardOpenState
-import com.xcvi.micros.ui.core.roundDecimals
+import com.xcvi.micros.domain.roundDecimals
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +41,7 @@ fun WeightScreen(
     modifier: Modifier = Modifier,
     viewModel: WeightViewModel = koinViewModel()
 ) {
-
+    val state = viewModel.state
     OnNavigation {
         viewModel.getData()
     }
@@ -57,7 +55,7 @@ fun WeightScreen(
             )
         },
     ) { padding ->
-        viewModel.state.currentWeight?.let { currentWeight ->
+        state.currentWeight?.let { currentWeight ->
             var isEditing by remember { mutableStateOf(false) }
 
             Column(
@@ -103,7 +101,7 @@ fun WeightScreen(
                             }
                         }
                     }
-                    if(viewModel.state.weights.isNotEmpty()){
+                    if(state.weights.isNotEmpty()){
                         item {
                             Text(
                                 text = "Today's Weight",
@@ -112,14 +110,14 @@ fun WeightScreen(
                             )
                         }
                     }
-                    itemsIndexed(viewModel.state.weights) { index, weight ->
+                    itemsIndexed(state.weights) { index, weight ->
                         HorizontalDivider()
                         ListItem(
                             headlineContent = {
                                 Text(text = weight.value.toString())
                             },
                             supportingContent = {
-                                Text(text = "${getLocalDateTime(weight.timestamp)}")
+                                Text(text = weight.timestamp.formatTimestamp())
                             },
                             trailingContent = {
                                 IconButton(onClick = { viewModel.delete(weight) }) {
@@ -128,7 +126,7 @@ fun WeightScreen(
                             }
                         )
                     }
-                    if(viewModel.state.weights.isNotEmpty()){
+                    if(state.weights.isNotEmpty()){
                         item {
                             HorizontalDivider()
                         }

@@ -1,26 +1,31 @@
 package com.xcvi.micros.domain
 
-import com.xcvi.micros.ui.core.getToday
+import kotlin.random.Random
 
 class FoodRepository {
 
     val portions = (0..100).map {
+        val foodName = if(it % 2 == 0) "Food $it" else "Food $it very long food name that goes outside card"
+        val protein = Random.nextDouble(130.0, 180.0).roundDecimals()
+        val carbs = if(it % 4 == 0) 200.0 else 500.0
+        val fats = if(it % 2 == 0) 20.0 else 100.0
+        val calories = protein * 4 + carbs * 4 + fats * 9
         Portion(
-            date = getToday() - (it % 7),
+            date = getToday() - it,
             meal = it % 6 + 1,
             barcode = "$it",
-            name = "Food $it very long food name that goes outside card",
+            name = foodName,
             brand = "",
-            calories = if(it % 2 == 0) 100.0+it else 0.0,
+            calories = calories,
             amount = if(it % 2 == 0) 100.0 else it+50.0,
             macros = Macros(
-                protein = if(it % 2 == 0) 120.0 else 50.0,
-                carbs = if(it % 2 == 0) 20.0 else 50.0,
-                fats = if(it % 2 == 0) 144.0 else 50.0,
-                saturatedFats = if(it % 2 == 0) 100.0 else 50.0,
-                sugars =if(it % 2 == 0) 110.0 else 50.0,
-                salt = if(it % 2 == 0) 16.0 else 50.0,
-                fiber = if(it % 2 == 0) 109.0 else 50.0
+                protein = protein,
+                carbs = carbs,
+                fats = fats,
+                saturatedFats = 0.0,
+                sugars = 0.0,
+                salt = 0.0,
+                fiber = 0.0
             ),
             minerals = Minerals(),
             vitamins = Vitamins(),

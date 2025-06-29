@@ -190,21 +190,21 @@ fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.get
     }
 }
 
-fun getLocalDate(epochDays: Int): LocalDate {
+private fun getLocalDate(epochDays: Int): LocalDate {
     return LocalDate.fromEpochDays(epochDays)
 }
 
 
-fun getNow(): Long {
+private fun getNow(): Long {
     return System.currentTimeMillis()
 }
 
-fun getToday(): Int {
+private fun getToday(): Int {
     val instant = Instant.fromEpochMilliseconds(getNow())
     val timeZone = TimeZone.currentSystemDefault()
     return instant.toLocalDateTime(timeZone).date.toEpochDays()
 }
-fun getLocalDateTime(timestamp: Long): LocalDateTime {
+private fun getLocalDateTime(timestamp: Long): LocalDateTime {
     val instant = Instant.fromEpochMilliseconds(timestamp)
     val timeZone = TimeZone.currentSystemDefault()
     return instant.toLocalDateTime(timeZone)

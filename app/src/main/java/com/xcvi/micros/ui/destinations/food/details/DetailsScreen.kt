@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination.food.details
+package com.xcvi.micros.ui.destinations.food.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +27,8 @@ import androidx.navigation.NavHostController
 import com.xcvi.micros.ui.core.NumberPicker
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.core.rememberShakeOffset
-import com.xcvi.micros.ui.destination.FoodGraph
-import com.xcvi.micros.ui.destination.food.add.PortionItem
+import com.xcvi.micros.ui.destinations.FoodGraph
+import com.xcvi.micros.ui.destinations.food.add.PortionItem
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +42,7 @@ fun DetailsScreen(
     modifier: Modifier = Modifier,
     viewModel: DetailsViewModel = koinViewModel()
 ) {
-
+    val state=viewModel.state
     OnNavigation {
         viewModel.getData(meal, date, barcode, amount)
     }
@@ -52,7 +52,7 @@ fun DetailsScreen(
         shakeTrigger = false // reset after animation
     }
 
-    viewModel.state.portion?.let { portion ->
+    state.portion?.let { portion ->
         Scaffold(
             topBar = {
                 TopAppBar(

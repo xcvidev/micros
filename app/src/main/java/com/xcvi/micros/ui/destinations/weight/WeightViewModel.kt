@@ -1,10 +1,10 @@
-package com.xcvi.micros.ui.destination.weight
+package com.xcvi.micros.ui.destinations.weight
 
 import com.xcvi.micros.domain.Weight
 import com.xcvi.micros.domain.WeightRepository
+import com.xcvi.micros.domain.getEpochDate
+import com.xcvi.micros.domain.getToday
 import com.xcvi.micros.ui.BaseViewModel
-import com.xcvi.micros.ui.core.getLocalDateTime
-import com.xcvi.micros.ui.core.getToday
 
 class WeightViewModel(private val repository: WeightRepository): BaseViewModel<WeightViewModel.State>(State())  {
     data class State(
@@ -17,7 +17,7 @@ class WeightViewModel(private val repository: WeightRepository): BaseViewModel<W
         updateData {
             copy(
                 weights = repository.weights.filter {
-                    getLocalDateTime(it.timestamp).date.toEpochDays() == getToday()
+                    it.timestamp.getEpochDate() == getToday()
                 },
                 currentWeight = repository.weights.first(),
                 numberPickerValue = repository.weights.first().value

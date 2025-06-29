@@ -1,11 +1,10 @@
-package com.xcvi.micros.ui.destination.food.dashboard
+package com.xcvi.micros.ui.destinations.food.dashboard
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,19 +15,16 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,13 +32,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.domain.Portion
+import com.xcvi.micros.domain.getToday
 import com.xcvi.micros.domain.summary
 import com.xcvi.micros.ui.core.DateSelector
 import com.xcvi.micros.ui.core.OnNavigation
-import com.xcvi.micros.ui.core.getToday
-import com.xcvi.micros.ui.destination.FoodGraph
-import com.xcvi.micros.ui.destination.food.SummaryCard
-import com.xcvi.micros.ui.theme.neon
+import com.xcvi.micros.ui.destinations.FoodGraph
+import com.xcvi.micros.ui.destinations.food.SummaryCard
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -55,12 +50,12 @@ fun FoodScreen(
     modifier: Modifier = Modifier,
     viewModel: FoodViewModel = koinViewModel()
 ) {
-
+    val state= viewModel.state
     OnNavigation {
         viewModel.getData(getToday())
     }
 
-    viewModel.state.summary?.let { summary ->
+    state.summary?.let { summary ->
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -83,7 +78,7 @@ fun FoodScreen(
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Spacer(modifier = Modifier.height(24.dp))
                     DateSelector(
-                        currentDate = viewModel.state.date,
+                        currentDate = state.date,
                         onDateChanged = { date ->
                             viewModel.setDate(date)
                         },
@@ -102,7 +97,7 @@ fun FoodScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                 }
-                val meals = viewModel.state.meals
+                val meals = state.meals
                 items(meals.keys.toList()) { index ->
                     var mealList = ""
                     meals[index]?.forEach { portion ->
@@ -115,7 +110,7 @@ fun FoodScreen(
                         navController.navigate(
                             FoodGraph.Meal(
                                 meal = index,
-                                date = viewModel.state.date
+                                date = state.date
                             )
                         )
                     }

@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination.food.scan
+package com.xcvi.micros.ui.destinations.food.scan
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

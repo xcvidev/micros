@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -44,9 +45,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xcvi.micros.domain.roundDecimals
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
+
 
 @Composable
 fun NumberPicker(
@@ -248,21 +252,218 @@ fun NumberPicker(
 }
 
 
-/*
-        // Floating label
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = (-24).dp)
-                .background(Color.DarkGray, shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = clampedValue.toString(),
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+@Composable
+fun DecimalNumberPicker(
+    onValueChange: (Double) -> Unit,
+    modifier: Modifier = Modifier,
+    showInputField: Boolean = false,
+    tickColor: Color = MaterialTheme.colorScheme.onSurface,
+    numberColor: Color = MaterialTheme.colorScheme.onSurface,
+    indicatorTickColor: Color = MaterialTheme.colorScheme.onSurface,
+    textFieldContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    valueRange: ClosedFloatingPointRange<Double> = 0.0..500.0,
+    initialValue: Double = 80.0,
+    tickSpacingDp: Dp = 12.dp,
+    clickGranularity: Double = 0.1,
+    horizontalClickTolerancePx: Float = 150f,
+    verticalClickTolerancePx: Float = 100f,
+    decimalPlaces: Int = 1
+) {
+    val tickSpacingPx = with(LocalDensity.current) { tickSpacingDp.toPx() }
+    val totalTicks = ((valueRange.endInclusive - valueRange.start) / clickGranularity).toInt()
+    val maxOffset = totalTicks * tickSpacingPx
+
+    val scrollOffsetAnim = remember {
+        Animatable(((initialValue - valueRange.start) / clickGranularity).toFloat() * tickSpacingPx)
+    }
+    val scope = rememberCoroutineScope()
+
+    val scrollState = rememberScrollableState { delta ->
+        val newOffset = (scrollOffsetAnim.value - delta).coerceIn(0f, maxOffset)
+        val consumed = scrollOffsetAnim.value - newOffset
+        scope.launch { scrollOffsetAnim.snapTo(newOffset) }
+        consumed
+    }
+
+    val rawIndex = scrollOffsetAnim.value / tickSpacingPx
+    val clampedIndex = rawIndex.roundToInt().coerceIn(0, totalTicks)
+
+    /*
+    val currentValue = (valueRange.start + clampedIndex * clickGranularity).roundDecimals()
+    onValueChange(currentValue.roundDecimals())
+     */
+    val currentValue = (valueRange.start + clampedIndex * clickGranularity).roundDecimals()
+
+    var lastValue by remember { mutableStateOf<Double?>(null) }
+    val roundedValue = currentValue.roundDecimals()
+    if (lastValue != roundedValue) {
+        lastValue = roundedValue
+        onValueChange(roundedValue)
+    }
+
+
+    LaunchedEffect(scrollState.isScrollInProgress) {
+        if (!scrollState.isScrollInProgress) {
+            val nearestTick = rawIndex.roundToInt()
+            val targetOffset = nearestTick * tickSpacingPx
+            scrollOffsetAnim.animateTo(targetOffset)
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    val tapX = offset.x
+                    val centerX = size.width / 2f
+                    val relativeX = scrollOffsetAnim.value + (tapX - centerX)
+                    val tappedIndexFloat = relativeX / tickSpacingPx
+
+                    val closestGranularityIndex =
+                        ((tappedIndexFloat / (1 / clickGranularity)).roundToInt()) *
+                                (1 / clickGranularity).toInt()
+
+                    val tappedValue = valueRange.start + closestGranularityIndex * clickGranularity
+
+                    if (tappedValue in valueRange) {
+                        val tickX =
+                            centerX - scrollOffsetAnim.value + (tappedValue - valueRange.start) / clickGranularity * tickSpacingPx
+                        val tapY = offset.y
+
+                        if (
+                            abs(tapX - tickX) <= horizontalClickTolerancePx &&
+                            tapY in (size.height / 2 - verticalClickTolerancePx)..(size.height / 2 + verticalClickTolerancePx)
+                        ) {
+                            val targetOffset =
+                                ((tappedValue - valueRange.start) / clickGranularity) * tickSpacingPx
+                            scope.launch {
+                                scrollOffsetAnim.animateTo(targetOffset.toFloat())
+                            }
+                        }
+                    }
+                }
+            }
+            .scrollable(
+                orientation = Orientation.Horizontal,
+                state = scrollState,
+                reverseDirection = false
             )
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val centerX = size.width / 2f
+            val startX = centerX - scrollOffsetAnim.value
+
+            for (i in 0..totalTicks) {
+                val x = startX + i * tickSpacingPx
+                if (x < 0 || x > size.width) continue
+
+                val height = if (i % 5 == 0) 30f else 15f
+                drawLine(
+                    color = tickColor,
+                    start = Offset(x, size.height / 2),
+                    end = Offset(x, size.height / 2 - height),
+                    strokeWidth = 2f
+                )
+
+                if (i % 10 == 0) {
+                    val value = valueRange.start + i * clickGranularity
+                    drawContext.canvas.nativeCanvas.drawText(
+                        "%.${decimalPlaces}f".format(value),
+                        x,
+                        size.height / 2 + 30,
+                        android.graphics.Paint().apply {
+                            color = numberColor.toArgb()
+                            textAlign = android.graphics.Paint.Align.CENTER
+                            textSize = 28f
+                        }
+                    )
+                }
+            }
         }
 
-         */
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(2.dp)
+                .height(50.dp)
+                .background(indicatorTickColor)
+        )
+        var textValue by remember { mutableStateOf("%.${decimalPlaces}f".format(currentValue)) }
+        var isEditing by remember { mutableStateOf(false) }
+
+        LaunchedEffect(currentValue, isEditing) {
+            if (!isEditing && textValue != "%.${decimalPlaces}f".format(currentValue)) {
+                textValue = "%.${decimalPlaces}f".format(currentValue)
+            }
+        }
+
+        val focusRequester = remember { FocusRequester() }
+
+        if (showInputField) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-32).dp)
+                    .background(
+                        color = textFieldContainerColor,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                TextField(
+                    value = textValue,
+                    onValueChange = { newValue ->
+                        textValue = newValue
+                        newValue.toDoubleOrNull()?.let { entered ->
+                            if (entered in valueRange) {
+                                val targetOffset =
+                                    ((entered - valueRange.start) / clickGranularity) * tickSpacingPx
+                                scope.launch {
+                                    scrollOffsetAnim.animateTo(targetOffset.toFloat())
+                                }
+                            }
+                        }
+
+                    },
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .width(80.dp)
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { isEditing = it.isFocused },
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(
+                        color = numberColor,
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-32).dp)
+                    .background(
+                        color = textFieldContainerColor,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                Text(
+                    text = textValue,
+                    modifier = Modifier.align(Alignment.Center),
+                    color = numberColor,
+                    fontSize = 18.sp,
+                )
+            }
+        }
+    }
+}

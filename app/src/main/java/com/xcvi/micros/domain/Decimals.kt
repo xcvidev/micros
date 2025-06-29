@@ -1,11 +1,13 @@
-package com.xcvi.micros.ui.core
+package com.xcvi.micros.domain
 
-import android.content.Context
 import java.util.Locale
 import kotlin.math.roundToInt
 
-fun getDisplayName(name: String, brands: String): String {
-    return if (brands.isEmpty() || brands.isBlank()) name else "$name ($brands)"
+fun List<Double>.normalize(): List<Double> {
+    if(this.isEmpty()) return this
+    val min = this.min()
+    val max = this.max()
+    return this.map { it - min }
 }
 
 fun Double.nextAmount(): Double {

@@ -1,4 +1,4 @@
-package com.xcvi.micros.ui.destination.food.meal
+package com.xcvi.micros.ui.destinations.food.meal
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,8 +37,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.ui.core.OnNavigation
-import com.xcvi.micros.ui.destination.FoodGraph
-import com.xcvi.micros.ui.destination.food.SummaryCard
+import com.xcvi.micros.ui.destinations.FoodGraph
+import com.xcvi.micros.ui.destinations.food.SummaryCard
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -54,7 +54,7 @@ fun MealScreen(
     OnNavigation {
         viewModel.getData(date = date, meal = meal)
     }
-
+    val state = viewModel.state
     var showInputDialog by remember { mutableStateOf(false) }
     if (showInputDialog) {
         InputDialog(
@@ -93,8 +93,8 @@ fun MealScreen(
             }
         }
     ) {
-        val portions = viewModel.state.portions
-        val summary = viewModel.state.summary
+        val portions = state.portions
+        val summary = state.summary
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()

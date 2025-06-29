@@ -1,9 +1,8 @@
-package com.xcvi.micros.ui.destination.food.details
+package com.xcvi.micros.ui.destinations.food.details
 
 import com.xcvi.micros.domain.FoodRepository
 import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.ui.BaseViewModel
-import com.xcvi.micros.ui.destination.food.add.AddViewModel
 
 class DetailsViewModel(
     private val repository: FoodRepository
