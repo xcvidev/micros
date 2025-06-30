@@ -1,5 +1,6 @@
 package com.xcvi.micros.ui.destinations.food
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,9 @@ fun SummaryCard(
     fats: Double,
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.Transparent,
+    proteinLabel: String = "Protein",
+    carbsLabel: String = "Carbohydrates",
+    fatsLabel: String = "Fats"
 ) {
     Card(
         modifier = modifier,
@@ -36,28 +40,69 @@ fun SummaryCard(
                 .fillMaxWidth(),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
-            Column{
-                Text(
-                    text = "Protein: ${protein.formatClean()} g",
-                    style = MaterialTheme.typography.titleSmall,
-                )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.Bottom
 
-                Text(
-                    text = "Carbs: ${carbs.formatClean()} g",
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Text(
-                    text = "Fats: ${fats.formatClean()} g",
-                    style = MaterialTheme.typography.titleSmall,
-                )
+                ) {
+                    Text(
+                        text = proteinLabel,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        text = " ${protein.formatClean()} g",
+                        //style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.Bottom
+
+                ) {
+                    Text(
+                        text = carbsLabel,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+
+                    )
+                    Text(
+                        text = " ${carbs.formatClean()} g",
+                        //style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.Bottom
+                ) {
+                    Text(
+                        text = fatsLabel,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+
+                    )
+                    Text(
+                        text = " ${fats.formatClean()} g",
+                        //style = MaterialTheme.typography.titleSmall,
+                    )
+                }
             }
             Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "$calories kcal",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
+            Row(
+                verticalAlignment = androidx.compose.ui.Alignment.Bottom
+            ){
+                Text(
+                    text = "$calories",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = " kcal",
+                    //style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
 
-            )
+                )
+            }
         }
     }
 }

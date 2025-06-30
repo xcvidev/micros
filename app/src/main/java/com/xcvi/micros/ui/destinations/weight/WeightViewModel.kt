@@ -29,8 +29,8 @@ class WeightViewModel(
             }.sortedByDescending { it.timestamp }
             copy(
                 weights = weights,
-                numberPickerValue = weights.lastOrNull()?.value ?: 0.0,
-                initialValue = weights.lastOrNull()?.value ?: 0.0,
+                numberPickerValue = weights.lastOrNull()?.value ?: repository.weights.maxOf { it.value }, // needed to avoid zero
+                initialValue = weights.lastOrNull()?.value ?: repository.weights.maxOf { it.value },
             )
         }
     }

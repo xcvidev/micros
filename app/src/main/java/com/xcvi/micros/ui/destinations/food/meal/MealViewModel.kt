@@ -18,26 +18,20 @@ class MealViewModel(
     )
 
     fun getData(date: Int, meal: Int){
-        val portions = repository.getPortions(date, meal)
-        updateData {
-            copy(
-                summary = portions.summary(),
-                portions = repository.getPortions(date, meal),
-            )
-        }
+
     }
 
     fun increasePortion(portion: Portion){
-        repository.updatePortion(portion, portion.amount.nextAmount())
+        //repository.updatePortion(portion, portion.amount.nextAmount())
         getData(portion.date, portion.meal)
     }
 
     fun decreasePortion(portion: Portion){
-        repository.updatePortion(portion, portion.amount.previousAmount())
+        //repository.updatePortion(portion, portion.amount.previousAmount())
         getData(portion.date, portion.meal)
     }
 
     fun saveCustomMeal(name: String){
-        repository.saveCustomMeal(name, state.portions)
+        //repository.saveCustomMeal(name, state.portions)
     }
 }

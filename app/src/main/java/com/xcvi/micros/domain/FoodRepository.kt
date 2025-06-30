@@ -83,17 +83,17 @@ class FoodRepository {
 
 
 data class Portion(
-    var  date: Int,
-    var  meal: Int,
-    var  barcode: String,
-    var  name: String,
-    var  brand: String,
-    var  calories: Double,
-    var  amount: Double,
-    var  macros: Macros,
-    var  minerals: Minerals,
-    var  vitamins: Vitamins,
-    var  aminoAcids: AminoAcids
+    var  date: Int = 0,
+    var  meal: Int = 0,
+    var  barcode: String = "",
+    var  name: String = "",
+    var  brand: String= "",
+    var  calories: Double = 0.0,
+    var  amount: Double = 0.0,
+    var  macros: Macros = Macros(0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+    var  minerals: Minerals = Minerals(),
+    var  vitamins: Vitamins = Vitamins(),
+    var  aminoAcids: AminoAcids = AminoAcids()
 )
 
 data class Macros(

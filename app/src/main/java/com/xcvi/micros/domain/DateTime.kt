@@ -12,6 +12,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
+import kotlinx.datetime.format
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
@@ -129,8 +130,9 @@ fun Long.getLocalDateTime(short: Boolean = true): LocalDateTime {
 fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val style = if (short) TextStyle.SHORT else TextStyle.FULL
-        this.month.getDisplayName(style, locale).substring(0, 3).lowercase()
+        this.month.getDisplayName(style, locale).lowercase()
             .replaceFirstChar { it.uppercase() }
+
     } else {
         // Fallback: format manually (non-localized)
         val name = this.month.name
@@ -145,7 +147,7 @@ fun LocalDate.dayOfWeekFormatted(
 ): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val style = if (short) TextStyle.SHORT else TextStyle.FULL
-        this.dayOfWeek.getDisplayName(style, locale)
+        this.dayOfWeek.getDisplayName(style, locale).lowercase().replaceFirstChar { it.uppercase() }
     } else {
         // Fallback: format manually (non-localized)
         val name = this.dayOfWeek.name
@@ -168,25 +170,29 @@ fun Int.formatEpochDate(
     }
 }
 
-fun Int.getGraphLabel(): String {
-    val date = LocalDate.fromEpochDays(this)
-    val month = date.monthFormatted(true)
-    return "$month ${date.dayOfMonth}"
-}
 
 /**
  * Long -> Formatted Date
  */
 
-fun Long.formatTimestamp(short: Boolean = true): String {
+fun Long.formatTimestamp(
+    short: Boolean = true,
+    showDayOfWeek: Boolean = false,
+    showTime: Boolean = false
+): String {
     val instant = Instant.fromEpochMilliseconds(this)
     val timeZone = TimeZone.currentSystemDefault()
     val localDate = instant.toLocalDateTime(timeZone)
 
-    val dateFormatted = localDate.date.toEpochDays().formatEpochDate(short)
-    //val timeFormatted = "${localDate.time.hour}:${localDate.time.minute}"
+    val dateFormatted =
+        localDate.date.toEpochDays().formatEpochDate(short = short, showDayOfWeek = showDayOfWeek)
+    val timeFormatted = if (showTime) {
+        "${localDate.time.hour}:${localDate.time.minute}"
+    } else {
+        ""
+    }
 
-    return "$dateFormatted"
+    return "$dateFormatted $timeFormatted"
 }
 
 

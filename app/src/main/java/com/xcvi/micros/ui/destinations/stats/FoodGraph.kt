@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,11 +29,14 @@ import kotlin.math.roundToInt
 fun FoodGraph(
     showDate: Boolean,
     data: Map<LocalDate, Portion>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    noDataText: String,
 ) {
     var selectedIndex by remember { mutableIntStateOf(0) }
     if (data.isEmpty()) {
-        EmptyGraph {
+        EmptyGraph(
+            noDataText = noDataText,
+        ) {
             selectedIndex = it
         }
     } else {
@@ -68,7 +72,7 @@ fun FoodGraph(
                     MaterialTheme.colorScheme.surfaceContainer.copy(
                         alpha = 0.5f
                     )
-                )
+                ).padding(vertical = 12.dp)
             ) {
                 SummaryCard(
                     calories = currentValue.calories.roundToInt(),
@@ -83,6 +87,7 @@ fun FoodGraph(
 
 @Composable
 private fun EmptyGraph(
+    noDataText: String,
     onValueChange: (Int) -> Unit,
 ) {
     Column{
@@ -103,7 +108,7 @@ private fun EmptyGraph(
                 indicatorColor = Color.Transparent,
                 lineColor = Color.Transparent,
             )
-            Text(text = "No Food data.", Modifier.align(Alignment.Center))
+            Text(text = noDataText, Modifier.align(Alignment.Center))
         }
         Box(
             modifier = Modifier.background(

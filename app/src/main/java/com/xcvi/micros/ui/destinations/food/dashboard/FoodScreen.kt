@@ -28,6 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -46,67 +48,72 @@ import kotlin.math.roundToInt
 @Composable
 fun FoodScreen(
     navController: NavHostController,
-    bottomBarPadding: Dp,
-    modifier: Modifier = Modifier,
-    viewModel: FoodViewModel = koinViewModel()
+    viewModel: FoodViewModel = koinViewModel(),
+    topAppBarTitle: String = "Food Log"
 ) {
-    val state= viewModel.state
+    val state = viewModel.state
     OnNavigation {
         viewModel.getData(getToday())
     }
 
-    state.summary?.let { summary ->
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text("Food Log")
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(topAppBarTitle)
+                },
+            )
+        },
+    ) { padding ->
+
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 8.dp, end = 8.dp, top = padding.calculateTopPadding()),
+            verticalItemSpacing = 8.dp,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            item(span = StaggeredGridItemSpan.FullLine) {
+                DateSelector(
+                    currentDate = state.date,
+                    onDateChanged = { date ->
+                        viewModel.setDate(date)
                     },
+                    horizontalPadding = 24.dp
                 )
-            },
-        ) { padding ->
+                Spacer(modifier = Modifier.height(80.dp))
+            }
 
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 8.dp, end = 8.dp, top = padding.calculateTopPadding()),
-                verticalItemSpacing = 8.dp,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    DateSelector(
-                        currentDate = state.date,
-                        onDateChanged = { date ->
-                            viewModel.setDate(date)
-                        },
-                        horizontalPadding = 24.dp
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
+            item(span = StaggeredGridItemSpan.FullLine) {
+                SummaryCard(
+                    calories = state.summary?.calories?.toInt()?: 0,
+                    protein = state.summary?.macros?.protein?: 0.0,
+                    carbs = state.summary?.macros?.carbs?: 0.0,
+                    fats = state.summary?.macros?.fats ?: 0.0
+                )
+                Spacer(modifier = Modifier.height(120.dp))
+            }
+            val meals = state.meals
+            items(meals.keys.toList()) { index ->
+                var mealList = ""
+                meals[index]?.forEach { portion ->
+                    mealList += portion.name + "\n"
                 }
-
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    SummaryCard(
-                        calories = summary.calories.toInt(),
-                        protein = summary.macros.protein,
-                        carbs = summary.macros.carbs,
-                        fats = summary.macros.fats
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-                val meals = state.meals
-                items(meals.keys.toList()) { index ->
-                    var mealList = ""
-                    meals[index]?.forEach { portion ->
-                        mealList += portion.name + "\n"
-                    }
-                    MealCard(
-                        meal = index,
-                        portions = meals[index] ?: emptyList(),
-                    ) {
+                MealCard(
+                    meal = index,
+                    portions = meals[index] ?: emptyList(),
+                ) {
+                    if (meals[index]?.isEmpty() == true) {
+                        navController.navigate(
+                            FoodGraph.Add(
+                                meal = index,
+                                date = state.date,
+                            )
+                        )
+                    } else {
                         navController.navigate(
                             FoodGraph.Meal(
                                 meal = index,
@@ -115,13 +122,13 @@ fun FoodScreen(
                         )
                     }
                 }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Spacer(modifier = Modifier.height(120.dp))
-                }
+            }
+            item(span = StaggeredGridItemSpan.FullLine) { // nav bar
+                Spacer(modifier = Modifier.height(150.dp))
             }
         }
-
     }
+
 }
 
 
@@ -130,9 +137,11 @@ fun MealCard(
     meal: Int,
     portions: List<Portion>,
     modifier: Modifier = Modifier,
-    placeholder: String = "No meals, Tap to add",
+    mealLabel: String = "Meal",
+    actionButtonText: String = "Add",
     onClick: () -> Unit = {}
 ) {
+
     Card(
         onClick = { onClick() },
         modifier = modifier,
@@ -144,7 +153,7 @@ fun MealCard(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Meal $meal",
+                text = "$mealLabel $meal",
                 style = MaterialTheme.typography.headlineSmall
             )
 
@@ -177,79 +186,16 @@ fun MealCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
                 // Action Button
-                TextButton (
+                TextButton(
                     onClick = { onClick() },
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Add", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(actionButtonText, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
     }
 }
-
-@Composable
-fun M3CardWithMedia(
-    modifier: Modifier = Modifier,
-    headline: String = "Display small",
-    subhead: String = "Subhead",
-    supportingText: String = "Explain more about the topic in the display and subhead through supporting text.",
-    onActionClick: () -> Unit = {}
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = headline,
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = subhead,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = supportingText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Placeholder for media
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Action Button
-            Button(
-                onClick = onActionClick,
-                modifier = Modifier.align(Alignment.End)
-            ) {
-                Text("Action")
-            }
-        }
-    }
-}
-
 
 
 

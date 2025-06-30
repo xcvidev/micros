@@ -20,20 +20,11 @@ class AddViewModel(
     )
 
     fun getData() {
-        updateData {
-            copy(
-                portions = repository.portions.sortedByDescending { it.date },
-            )
-        }
+
     }
 
     fun generate(date: Int, meal: Int) {
-        viewModelScope.launch {
-            updateData { copy(isGenerating = true) }
-            delay(3000)
-            val generated = repository.generate(date = date, meal = meal, description = state.query)
-            updateData { copy(isGenerating = false, portions = emptyList(), generated = generated) }
-        }
+
     }
 
     fun setQuery(query: String) {

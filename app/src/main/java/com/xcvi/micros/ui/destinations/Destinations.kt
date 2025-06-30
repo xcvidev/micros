@@ -62,13 +62,16 @@ fun Destinations(
             ) {
                 //main graph
                 composable(FoodGraph.label) {
-                    FoodScreen(navController, scaffoldPadding.calculateBottomPadding())
+                    FoodScreen(navController)
                 }
                 composable(WeightGraph.label) {
                     WeightScreen()
                 }
                 composable(StatsGraph.label) {
-                    StatsScreen(bottomBarPadding = scaffoldPadding.calculateBottomPadding())
+                    StatsScreen(
+                        bottomBarPadding = scaffoldPadding.calculateBottomPadding(),
+
+                    )
                 }
 
                 //food graph
@@ -82,7 +85,9 @@ fun Destinations(
                 }
                 slidingComposable<FoodGraph.Scan> {
                     val args = it.toRoute<FoodGraph.Scan>()
-                    ScanScreen(navHostController =  navController, date = args.date, meal = args.meal)
+                    ScanScreen(
+                        navController =  navController, date = args.date, meal = args.meal
+                    )
                 }
                 slidingComposable<FoodGraph.Details> {
                     val args = it.toRoute<FoodGraph.Details>()

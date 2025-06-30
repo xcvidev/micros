@@ -16,16 +16,7 @@ class FoodViewModel(
     )
 
     fun getData(date: Int){
-        val meals = (1..6).associateWith { mealNumber ->
-            repository.portions.filter { it.date == date && it.meal == mealNumber }
-        }.toMutableMap()
-        meals[4] = emptyList()
-        updateData {
-            copy(
-                summary = repository.getSummary(date),
-                meals = meals
-            )
-        }
+
     }
 
     fun setDate(date: Int){

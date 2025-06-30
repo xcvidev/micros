@@ -14,13 +14,11 @@ class DetailsViewModel(
     )
 
     fun getData(meal: Int, date: Int, barcode: String, amount: Int){
-        updateData {
-            copy(portion = repository.getPortion(meal = meal, date = date, barcode = barcode), numberPickerValue = amount)
-        }
+
     }
 
     fun eat(date: Int, meal: Int, onFailure: () -> Unit, onSuccess: () -> Unit){
-        onSuccess()
+
     }
     fun updateNumberPickerValue(value: Int){
         updateData {

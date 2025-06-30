@@ -27,7 +27,10 @@ import org.koin.androidx.compose.koinViewModel
 fun StatsScreen(
     bottomBarPadding: Dp,
     modifier: Modifier = Modifier,
-    viewModel: StatsViewModel = koinViewModel()
+    viewModel: StatsViewModel = koinViewModel(),
+    topAppBarTitle: String = "Stats",
+    noFoodDataText: String = "No food data.",
+    noWeightDataText: String ="No measured weights."
 ) {
     OnNavigation {
         viewModel.getData()
@@ -40,7 +43,7 @@ fun StatsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Trends")
+                    Text(text = topAppBarTitle)
                 },
                 actions = {
                     if (viewModel.state.hasData) {
@@ -67,7 +70,8 @@ fun StatsScreen(
                 FoodGraph(
                     data = if(selectedFilter == "Week") state.foodsByWeek else state.foodsByMonth,
                     modifier = modifier.fillMaxWidth(),
-                    showDate = selectedFilter == "Week"
+                    showDate = selectedFilter == "Week",
+                    noDataText = noFoodDataText,
                 )
             }
 
@@ -75,7 +79,8 @@ fun StatsScreen(
                 WeightGraph(
                     data = if(selectedFilter == "Week") state.weightsByWeek else state.weightsByMonth,
                     modifier = modifier.fillMaxWidth(),
-                    showDate = selectedFilter == "Week"
+                    showDate = selectedFilter == "Week",
+                    noDataText = noWeightDataText
                 )
             }
         }

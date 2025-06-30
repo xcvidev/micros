@@ -28,10 +28,13 @@ fun WeightGraph(
     showDate: Boolean,
     data: Map<LocalDate, Weight>,
     modifier: Modifier = Modifier,
+    noDataText: String,
 ) {
     var selectedIndex by remember { mutableIntStateOf(0) }
     if (data.isEmpty()) {
-        EmptyGraph {
+        EmptyGraph(
+            noDataText = noDataText,
+        ) {
             selectedIndex = it
         }
     } else {
@@ -77,6 +80,7 @@ fun WeightGraph(
 
 @Composable
 private fun EmptyGraph(
+    noDataText: String,
     onValueChange: (Int) -> Unit,
 ) {
     Column {
@@ -97,7 +101,7 @@ private fun EmptyGraph(
                 indicatorColor = Color.Transparent,
                 lineColor = Color.Transparent,
             )
-            Text(text = "No measured weights.", Modifier.align(Alignment.Center))
+            Text(text = noDataText, Modifier.align(Alignment.Center))
         }
 
     }
