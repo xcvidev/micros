@@ -65,10 +65,7 @@ fun Destinations(
                     FoodScreen(navController, scaffoldPadding.calculateBottomPadding())
                 }
                 composable(WeightGraph.label) {
-                    WeightScreen(
-                        navController = navController,
-                        bottomBarPadding = scaffoldPadding.calculateBottomPadding(),
-                    )
+                    WeightScreen()
                 }
                 composable(StatsGraph.label) {
                     StatsScreen(bottomBarPadding = scaffoldPadding.calculateBottomPadding())

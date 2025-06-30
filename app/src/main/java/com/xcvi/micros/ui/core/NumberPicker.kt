@@ -51,7 +51,6 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 
-
 @Composable
 fun NumberPicker(
     onValueChange: (Int) -> Unit,
@@ -273,10 +272,19 @@ fun DecimalNumberPicker(
     val totalTicks = ((valueRange.endInclusive - valueRange.start) / clickGranularity).toInt()
     val maxOffset = totalTicks * tickSpacingPx
 
-    val scrollOffsetAnim = remember {
-        Animatable(((initialValue - valueRange.start) / clickGranularity).toFloat() * tickSpacingPx)
-    }
     val scope = rememberCoroutineScope()
+
+    val scrollOffsetAnim = remember {
+        Animatable(
+            ((initialValue * tickSpacingPx / clickGranularity).toFloat())
+        )
+    }
+
+    LaunchedEffect(initialValue) {
+        val initialOffset =
+            ((initialValue - valueRange.start) / clickGranularity).toFloat() * tickSpacingPx
+        scrollOffsetAnim.snapTo(initialOffset)
+    }
 
     val scrollState = rememberScrollableState { delta ->
         val newOffset = (scrollOffsetAnim.value - delta).coerceIn(0f, maxOffset)
@@ -288,10 +296,6 @@ fun DecimalNumberPicker(
     val rawIndex = scrollOffsetAnim.value / tickSpacingPx
     val clampedIndex = rawIndex.roundToInt().coerceIn(0, totalTicks)
 
-    /*
-    val currentValue = (valueRange.start + clampedIndex * clickGranularity).roundDecimals()
-    onValueChange(currentValue.roundDecimals())
-     */
     val currentValue = (valueRange.start + clampedIndex * clickGranularity).roundDecimals()
 
     var lastValue by remember { mutableStateOf<Double?>(null) }
@@ -445,23 +449,6 @@ fun DecimalNumberPicker(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     )
-                )
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = (-32).dp)
-                    .background(
-                        color = textFieldContainerColor,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            ) {
-                Text(
-                    text = textValue,
-                    modifier = Modifier.align(Alignment.Center),
-                    color = numberColor,
-                    fontSize = 18.sp,
                 )
             }
         }

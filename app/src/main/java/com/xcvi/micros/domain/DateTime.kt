@@ -1,13 +1,20 @@
 package com.xcvi.micros.domain
 
 import android.os.Build
+import androidx.annotation.RequiresApi
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
+import kotlinx.datetime.isoDayNumber
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
@@ -27,7 +34,6 @@ fun getToday(): Int {
     return instant.toLocalDateTime(timeZone).date.toEpochDays()
 }
 
-
 /**
  * Int -> Long
  */
@@ -38,16 +44,20 @@ fun Int.getStartTimestamp(): Long {
 
 fun Int.getEndTimestamp(): Long {
     val date = LocalDate.fromEpochDays(this)
-    return date.atTime(23, 59, 59, 999).toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+    return date.atTime(23, 59, 59, 999).toInstant(TimeZone.currentSystemDefault())
+        .toEpochMilliseconds()
 }
+
 fun Int.getTimestamp(hour: Int, minute: Int, seconds: Int): Long {
     val date = LocalDate.fromEpochDays(this)
-    return date.atTime(hour, minute, seconds).toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+    return date.atTime(hour, minute, seconds).toInstant(TimeZone.currentSystemDefault())
+        .toEpochMilliseconds()
 }
 
 fun Int.getTimestamp(hour: Int, minute: Int): Long {
     val date = LocalDate.fromEpochDays(this)
-    return date.atTime(hour, minute, 0,0).toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+    return date.atTime(hour, minute, 0, 0).toInstant(TimeZone.currentSystemDefault())
+        .toEpochMilliseconds()
 }
 
 
@@ -70,6 +80,31 @@ fun Int.getLocalDate(): LocalDate {
     return LocalDate.fromEpochDays(this)
 }
 
+fun Int.getStartOfWeek(): Int {
+    val localDate = LocalDate.fromEpochDays(this)
+    val dayOfWeek = localDate.dayOfWeek.isoDayNumber  // Monday=1, Sunday=7
+
+    val daysToSubtract = (dayOfWeek - 1) // how many days since Monday
+    val monday = localDate.minus(DatePeriod(days = daysToSubtract))
+    return monday.toEpochDays()
+}
+
+fun Int.getEndOfWeek(): Int {
+    return this.getStartOfWeek() + 6
+}
+
+fun Int.getStartOfMonth(): Int {
+    val localDate = LocalDate.fromEpochDays(this)
+    return LocalDate(localDate.year, localDate.month.ordinal, 1).toEpochDays()
+}
+
+fun Int.getEndOfMonth(): Int {
+    val localDate = LocalDate.fromEpochDays(this)
+    val nextMonth = LocalDate(localDate.year, localDate.month.ordinal + 1, 1)
+    return nextMonth.toEpochDays() - 1
+}
+
+
 /**
  * Long -> DateTime
  */
@@ -77,17 +112,15 @@ fun Int.getLocalDate(): LocalDate {
 fun Long.getLocalDate(): LocalDate {
     val instant = Instant.fromEpochMilliseconds(this)
     val timeZone = TimeZone.currentSystemDefault()
-    val localDate =  instant.toLocalDateTime(timeZone)
+    val localDate = instant.toLocalDateTime(timeZone)
     return localDate.date
 }
+
 fun Long.getLocalDateTime(short: Boolean = true): LocalDateTime {
     val instant = Instant.fromEpochMilliseconds(this)
     val timeZone = TimeZone.currentSystemDefault()
     return instant.toLocalDateTime(timeZone)
 }
-
-
-
 
 
 /**
@@ -96,7 +129,8 @@ fun Long.getLocalDateTime(short: Boolean = true): LocalDateTime {
 fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val style = if (short) TextStyle.SHORT else TextStyle.FULL
-        this.month.getDisplayName(style, locale).substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
+        this.month.getDisplayName(style, locale).substring(0, 3).lowercase()
+            .replaceFirstChar { it.uppercase() }
     } else {
         // Fallback: format manually (non-localized)
         val name = this.month.name
@@ -104,7 +138,11 @@ fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.get
         else name.lowercase().replaceFirstChar { it.uppercase() }
     }
 }
-fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
+
+fun LocalDate.dayOfWeekFormatted(
+    short: Boolean = false,
+    locale: Locale = Locale.getDefault()
+): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val style = if (short) TextStyle.SHORT else TextStyle.FULL
         this.dayOfWeek.getDisplayName(style, locale)
@@ -116,13 +154,20 @@ fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale
     }
 }
 
-fun Int.formatEpochDate(short: Boolean = true): String {
+fun Int.formatEpochDate(
+    short: Boolean = true, showDayOfWeek: Boolean = false
+): String {
     val date = LocalDate.fromEpochDays(this)
     val month = date.monthFormatted(short)
     val dayOfWeek = date.dayOfWeekFormatted(short)
 
-    return "$dayOfWeek, $month ${date.dayOfMonth}"
+    return if (showDayOfWeek) {
+        "$dayOfWeek, $month ${date.dayOfMonth}"
+    } else {
+        "$month ${date.dayOfMonth}"
+    }
 }
+
 fun Int.getGraphLabel(): String {
     val date = LocalDate.fromEpochDays(this)
     val month = date.monthFormatted(true)
@@ -136,12 +181,12 @@ fun Int.getGraphLabel(): String {
 fun Long.formatTimestamp(short: Boolean = true): String {
     val instant = Instant.fromEpochMilliseconds(this)
     val timeZone = TimeZone.currentSystemDefault()
-    val localDate =  instant.toLocalDateTime(timeZone)
+    val localDate = instant.toLocalDateTime(timeZone)
 
     val dateFormatted = localDate.date.toEpochDays().formatEpochDate(short)
-    val timeFormatted = "${localDate.time.hour}:${localDate.time.minute}"
+    //val timeFormatted = "${localDate.time.hour}:${localDate.time.minute}"
 
-    return "$dateFormatted, $timeFormatted"
+    return "$dateFormatted"
 }
 
 

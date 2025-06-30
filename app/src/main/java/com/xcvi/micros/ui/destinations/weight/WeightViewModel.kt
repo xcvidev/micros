@@ -2,47 +2,81 @@ package com.xcvi.micros.ui.destinations.weight
 
 import com.xcvi.micros.domain.Weight
 import com.xcvi.micros.domain.WeightRepository
+import com.xcvi.micros.domain.getEndOfWeek
 import com.xcvi.micros.domain.getEpochDate
+import com.xcvi.micros.domain.getStartOfWeek
+import com.xcvi.micros.domain.getTimestamp
 import com.xcvi.micros.domain.getToday
 import com.xcvi.micros.ui.BaseViewModel
 
-class WeightViewModel(private val repository: WeightRepository): BaseViewModel<WeightViewModel.State>(State())  {
+class WeightViewModel(
+    private val repository: WeightRepository
+) : BaseViewModel<WeightViewModel.State>(State()) {
+
     data class State(
+        val initialValue: Double = 0.0,     // must have to avoid 0.0 number picker initial value
         val numberPickerValue: Double = 0.0,
-        val currentWeight: Weight? = null,
+        val currentDate: Int = getToday(),
         val weights: List<Weight> = emptyList()
     )
 
-    fun getData(){
+    fun getData(date: Int) {
         updateData {
+            val weights = repository.weights.filter {
+                it.timestamp.getEpochDate() >= date.getStartOfWeek() &&
+                        it.timestamp.getEpochDate() <= date.getEndOfWeek()
+            }.sortedByDescending { it.timestamp }
             copy(
-                weights = repository.weights.filter {
-                    it.timestamp.getEpochDate() == getToday()
-                },
-                currentWeight = repository.weights.first(),
-                numberPickerValue = repository.weights.first().value
+                weights = weights,
+                numberPickerValue = weights.lastOrNull()?.value ?: 0.0,
+                initialValue = weights.lastOrNull()?.value ?: 0.0,
             )
         }
     }
 
-    fun setNumberPickerValue(value: Double){
+    fun setNumberPickerValue(value: Double) {
         updateData {
             copy(numberPickerValue = value)
         }
     }
 
-    fun save(){
+    fun setDate(date: Int) {
+        updateData {
+            copy(currentDate = date)
+        }
+        getData(date)
+    }
+
+    fun save() {
         repository.weights.add(
             Weight(
                 value = state.numberPickerValue,
-                timestamp = System.currentTimeMillis()
+                timestamp = state.currentDate.getTimestamp(8, 0)
             )
         )
-        getData()
+        val weights = repository.weights.filter {
+            it.timestamp.getEpochDate() >= state.currentDate.getStartOfWeek() &&
+                    it.timestamp.getEpochDate() <= state.currentDate.getEndOfWeek()
+        }.sortedByDescending { it.timestamp }
+        updateData {
+            copy(
+                initialValue = weights.lastOrNull()?.value ?: 0.0,
+                weights = weights
+            )
+        }
     }
 
-    fun delete(weight: Weight){
+    fun delete(weight: Weight) {
         repository.weights.remove(weight)
-        getData()
+        getData(state.currentDate)
     }
 }
+
+
+
+
+
+
+
+
+

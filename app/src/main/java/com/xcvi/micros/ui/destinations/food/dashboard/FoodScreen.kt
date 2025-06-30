@@ -171,6 +171,11 @@ fun MealCard(
                     }
                 }
             } else {
+                Text(
+                    text = "0 kcal",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
                 // Action Button
                 TextButton (
                     onClick = { onClick() },

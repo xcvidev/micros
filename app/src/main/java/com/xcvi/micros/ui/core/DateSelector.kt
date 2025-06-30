@@ -14,6 +14,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +35,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xcvi.micros.R
+import com.xcvi.micros.domain.getEndTimestamp
+import com.xcvi.micros.domain.getStartTimestamp
+import com.xcvi.micros.domain.getTimestamp
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -47,7 +51,6 @@ import java.util.Locale
 fun DateSelector(
     currentDate: Int,
     onDateChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier,
     horizontalPadding: Dp = 0.dp,
     verticalPadding: Dp = 0.dp,
 ) {
@@ -62,9 +65,6 @@ fun DateSelector(
     } else {
         dateFormatted
     }
-
-    val datePickerState = rememberDatePickerState(selectableDates = PastOrPresentSelectableDates)
-
 
     Row(
         modifier = Modifier
@@ -110,50 +110,69 @@ fun DateSelector(
 
 
     if (showDatePicker) {
-        DatePickerDialog(
+        DateSelectorDialog(
+            currentDate = currentDate,
             onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                Button(
-                    modifier = modifier.padding(4.dp),
-                    onClick = {
-                        showDatePicker = false
-                        onDateChanged(
-                            getLocalDateTime(
-                                datePickerState.selectedDateMillis ?: getNow()
-                            ).date.toEpochDays()
-                        )
-                    }) {
-                    Text(text = "Ok")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDatePicker = false },
-                    modifier = modifier.padding(4.dp)
-                ) {
-                    Text(text = "Cancel")
-                }
-            },
-            content = {
-                Column(modifier.padding(top = 24.dp)) {
-                    DatePicker(
-                        headline = null,
-                        title = null,
-                        state = datePickerState,
-                        modifier = modifier.fillMaxWidth(),
-                        showModeToggle = false,
-                        colors = DatePickerDefaults.colors(
-                            containerColor = Transparent
-                        )
-                    )
-                }
-            }
+            onDateChanged = onDateChanged
         )
     }
 
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateSelectorDialog(
+    currentDate: Int,
+    onDismissRequest: () -> Unit,
+    onDateChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = currentDate.getTimestamp(8,0),
+        selectableDates = PastOrPresentSelectableDates
+    )
+
+    DatePickerDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            Button(
+                modifier = modifier.padding(4.dp),
+                onClick = {
+                    onDismissRequest()
+                    onDateChanged(
+                        getLocalDateTime(
+                            datePickerState.selectedDateMillis ?: getNow()
+                        ).date.toEpochDays()
+                    )
+                }) {
+                Text(text = "Ok")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { onDismissRequest() },
+                modifier = modifier.padding(4.dp)
+            ) {
+                Text(text = "Cancel")
+            }
+        },
+        content = {
+            Column(modifier.padding(top = 24.dp)) {
+                DatePicker(
+                    headline = null,
+                    title = null,
+                    state = datePickerState,
+                    modifier = modifier.fillMaxWidth(),
+                    showModeToggle = false,
+                    colors = DatePickerDefaults.colors(
+                        containerColor = Transparent
+                    )
+                )
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 object PastOrPresentSelectableDates : SelectableDates {
