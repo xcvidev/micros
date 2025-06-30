@@ -41,15 +41,19 @@ import kotlin.math.roundToInt
 
 @Composable
 fun BarGraph(
-    yAxis: List<Double>,
+    yAxis: List<Int>,
     xAxis: List<String>,
     maxY: Double,
     onValueChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-    tickSpacingDp: Dp = 80.dp,
+    //modifier: Modifier = Modifier,
+    tickSpacingDp: Dp = 70.dp,
     graphHeight: Dp = 220.dp,
+    selectedTextColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     selectedBarColor: Color = MaterialTheme.colorScheme.primary,
-    barColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    barColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    containerColor: Color = Color.Transparent,
+    //containerColor: Color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f),
     horizontalClickTolerancePx: Float = 200f,
     verticalClickTolerancePx: Float = 150f,
 ) {
@@ -92,7 +96,8 @@ fun BarGraph(
     val labelBounds = remember { mutableStateMapOf<Int, Rect>() }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .background(containerColor)
             .fillMaxWidth()
             .height(graphHeight)
             .pointerInput(Unit) {
@@ -137,6 +142,7 @@ fun BarGraph(
                 reverseDirection = false
             )
     ) {
+
         Canvas(modifier = Modifier.fillMaxSize()) {
             val centerX = size.width / 2f
             val startX = centerX - scrollOffsetAnim.value
@@ -144,8 +150,29 @@ fun BarGraph(
             val maxBarHeight = size.height * 0.6f
             val bottomY = size.height * 0.75f // spacing between bars and labels
 
-
             labelBounds.clear()
+
+            /*
+            // Define shared label background box
+            val labelBackgroundTop = bottomY + 15f
+            val labelBackgroundBottom = bottomY + 110f
+            val labelBackgroundRect = Rect(
+                left = 0f,
+                top = labelBackgroundTop,
+                right = size.width,
+                bottom = labelBackgroundBottom
+            )
+            // Draw single background behind all labels
+            drawRoundRect(
+                color = labelBackgroundColor,
+                topLeft = Offset(labelBackgroundRect.left, labelBackgroundRect.top),
+                size = Size(
+                    width = labelBackgroundRect.width,
+                    height = labelBackgroundRect.height
+                ),
+                cornerRadius = CornerRadius(16f, 16f)
+            )
+             */
 
             yAxis.forEachIndexed { i, yValue ->
                 val x = startX + i * tickSpacingPx
@@ -164,15 +191,14 @@ fun BarGraph(
                     cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
                 )
 
-
+                val textColor = if (isSelected) selectedTextColor else unselectedTextColor
                 // Draw x-axis label
                 val label = xAxis.getOrNull(i) ?: ""
                 val paint = android.graphics.Paint().apply {
-                    this.color = color.toArgb()
-                    textSize = 40f
+                    this.color = textColor.toArgb()
+                    textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
                 }
-
                 val labelY = bottomY + 80f
                 drawContext.canvas.nativeCanvas.drawText(label, x, labelY, paint)
 
@@ -186,8 +212,6 @@ fun BarGraph(
                     right = x + textWidth / 2,
                     bottom = labelY + 10f
                 )
-
-
             }
         }
     }
@@ -200,9 +224,10 @@ fun DotGraph(
     maxY: Double,
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    tickSpacingDp: Dp = 80.dp,
+    tickSpacingDp: Dp = 70.dp,
     graphHeight: Dp = 220.dp,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    containerColor: Color = Color.Transparent,
+    //containerColor: Color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f),
     indicatorColor: Color = Color.Transparent,
     selectedDotColor: Color = MaterialTheme.colorScheme.primary,
     unselectedDotColor: Color = Color.Transparent,
@@ -255,7 +280,7 @@ fun DotGraph(
         modifier = modifier
             .fillMaxWidth()
             .height(graphHeight)
-            .background(backgroundColor)
+            .background(containerColor)
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
                     val tapX = offset.x
@@ -364,7 +389,7 @@ fun DotGraph(
                 val label = xAxis.getOrNull(i) ?: ""
                 val paint = android.graphics.Paint().apply {
                     this.color = if (isSelected) selectedLabelColor.toArgb() else unselectedLabelColor.toArgb()
-                    textSize = 40f
+                    textSize = 30f
                     textAlign = android.graphics.Paint.Align.CENTER
                 }
 

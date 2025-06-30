@@ -110,9 +110,9 @@ class Minerals
 class Vitamins
 class AminoAcids
 
-fun List<Portion>.summary(): Portion {
-    return this.fold(Portion(
-        date = 0,
+fun List<Portion>.summary(date: Int = 0): Portion {
+    val summary =  this.fold(Portion(
+        date = date,
         meal = 0,
         barcode = "",
         name = "",
@@ -134,7 +134,6 @@ fun List<Portion>.summary(): Portion {
     )) { acc, portion ->
         acc.apply {
             calories += portion.calories
-            amount += portion.amount
             macros.apply {
                 protein += portion.macros.protein
                 carbs += portion.macros.carbs
@@ -146,4 +145,18 @@ fun List<Portion>.summary(): Portion {
             }
         }
     }
+    return summary
+}
+
+fun List<Portion>.avg(date: Int): Portion {
+    val summary = this.summary(date)
+    return summary.copy(
+        date = date,
+        calories = summary.calories / this.size,
+        macros = summary.macros.copy(
+            protein = summary.macros.protein / this.size,
+            carbs = summary.macros.carbs / this.size,
+            fats = summary.macros.fats / this.size
+        )
+    )
 }

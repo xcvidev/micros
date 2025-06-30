@@ -66,7 +66,7 @@ fun Long.getEpochDate(): Int {
  * Int -> LocalDate
  */
 
-fun Int.getLocalDate(short: Boolean = true): LocalDate {
+fun Int.getLocalDate(): LocalDate {
     return LocalDate.fromEpochDays(this)
 }
 
@@ -74,7 +74,7 @@ fun Int.getLocalDate(short: Boolean = true): LocalDate {
  * Long -> DateTime
  */
 
-fun Long.getLocalDate(short: Boolean = true): LocalDate {
+fun Long.getLocalDate(): LocalDate {
     val instant = Instant.fromEpochMilliseconds(this)
     val timeZone = TimeZone.currentSystemDefault()
     val localDate =  instant.toLocalDateTime(timeZone)
@@ -93,35 +93,40 @@ fun Long.getLocalDateTime(short: Boolean = true): LocalDateTime {
 /**
  * Int -> Formatted Date
  */
+fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val style = if (short) TextStyle.SHORT else TextStyle.FULL
+        this.month.getDisplayName(style, locale).substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
+    } else {
+        // Fallback: format manually (non-localized)
+        val name = this.month.name
+        if (short) name.substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
+        else name.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
+fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val style = if (short) TextStyle.SHORT else TextStyle.FULL
+        this.dayOfWeek.getDisplayName(style, locale)
+    } else {
+        // Fallback: format manually (non-localized)
+        val name = this.dayOfWeek.name
+        if (short) name.substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
+        else name.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
 
 fun Int.formatEpochDate(short: Boolean = true): String {
-    fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val style = if (short) TextStyle.SHORT else TextStyle.FULL
-            this.month.getDisplayName(style, locale)
-        } else {
-            // Fallback: format manually (non-localized)
-            val name = this.month.name
-            if (short) name.substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
-            else name.lowercase().replaceFirstChar { it.uppercase() }
-        }
-    }
-    fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val style = if (short) TextStyle.SHORT else TextStyle.FULL
-            this.dayOfWeek.getDisplayName(style, locale)
-        } else {
-            // Fallback: format manually (non-localized)
-            val name = this.dayOfWeek.name
-            if (short) name.substring(0, 3).lowercase().replaceFirstChar { it.uppercase() }
-            else name.lowercase().replaceFirstChar { it.uppercase() }
-        }
-    }
     val date = LocalDate.fromEpochDays(this)
     val month = date.monthFormatted(short)
     val dayOfWeek = date.dayOfWeekFormatted(short)
 
     return "$dayOfWeek, $month ${date.dayOfMonth}"
+}
+fun Int.getGraphLabel(): String {
+    val date = LocalDate.fromEpochDays(this)
+    val month = date.monthFormatted(true)
+    return "$month ${date.dayOfMonth}"
 }
 
 /**

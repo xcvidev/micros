@@ -178,7 +178,7 @@ fun LocalDate.dayOfWeekFormatted(short: Boolean = false, locale: Locale = Locale
     }
 }
 
-fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
+private fun LocalDate.monthFormatted(short: Boolean = false, locale: Locale = Locale.getDefault()): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val style = if (short) TextStyle.SHORT else TextStyle.FULL
         this.month.getDisplayName(style, locale).replaceFirstChar { it.uppercase() }

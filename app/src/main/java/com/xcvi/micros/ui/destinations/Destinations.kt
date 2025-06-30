@@ -71,7 +71,7 @@ fun Destinations(
                     )
                 }
                 composable(StatsGraph.label) {
-                    StatsScreen(navController = navController,bottomBarPadding = scaffoldPadding.calculateBottomPadding())
+                    StatsScreen(bottomBarPadding = scaffoldPadding.calculateBottomPadding())
                 }
 
                 //food graph
