@@ -17,7 +17,8 @@ class WeightViewModel(
         val initialValue: Double = 0.0,     // must have to avoid 0.0 number picker initial value
         val numberPickerValue: Double = 0.0,
         val currentDate: Int = getToday(),
-        val weights: List<Weight> = emptyList()
+        val weights: List<Weight> = emptyList(),
+        val deleteWeight: Weight? = null
     )
 
     fun getData(date: Int) {
@@ -47,6 +48,12 @@ class WeightViewModel(
         getData(date)
     }
 
+    fun setDeleteWeight(weight: Weight) {
+        updateData {
+            copy(deleteWeight = weight)
+        }
+    }
+
     fun save() {
         repository.weights.add(
             Weight(
@@ -66,8 +73,9 @@ class WeightViewModel(
         }
     }
 
-    fun delete(weight: Weight) {
-        repository.weights.remove(weight)
+    fun delete() {
+        if (state.deleteWeight == null) return
+        repository.weights.remove(state.deleteWeight)
         getData(state.currentDate)
     }
 }
