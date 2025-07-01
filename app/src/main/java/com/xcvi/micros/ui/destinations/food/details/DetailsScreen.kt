@@ -28,7 +28,6 @@ import com.xcvi.micros.ui.core.NumberPicker
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.core.rememberShakeOffset
 import com.xcvi.micros.ui.destinations.FoodGraph
-import com.xcvi.micros.ui.destinations.food.add.PortionItem
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +39,11 @@ fun DetailsScreen(
     barcode: String,
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    viewModel: DetailsViewModel = koinViewModel()
+    viewModel: DetailsViewModel = koinViewModel(),
+    caloriesLabel: String = "Calories",
+    proteinLabel: String = "Protein",
+    carbsLabel: String = "Carbs",
+    fatsLabel: String = "Fats",
 ) {
     val state=viewModel.state
     OnNavigation {
@@ -112,11 +115,7 @@ fun DetailsScreen(
                     }
                 }
                 item{
-                    PortionItem(
-                        portion = portion,
-                        streamContent = false
-                    ) {
-                    }
+
                 }
             }
         }

@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -68,10 +69,7 @@ fun Destinations(
                     WeightScreen()
                 }
                 composable(StatsGraph.label) {
-                    StatsScreen(
-                        bottomBarPadding = scaffoldPadding.calculateBottomPadding(),
-
-                    )
+                    StatsScreen(bottomBarPadding = scaffoldPadding.calculateBottomPadding())
                 }
 
                 //food graph
@@ -80,8 +78,19 @@ fun Destinations(
                     MealScreen(navController = navController, date = args.date, meal = args.meal)
                 }
                 slidingComposable<FoodGraph.Add> {
+                    val promptFieldPlaceholders = listOf(
+                        "Describe your food...",
+                        "Try a plate of pasta with tomato sauce",
+                        "Describe what you ate",
+                    )
+                    val placeHolder = remember { promptFieldPlaceholders.random() }
                     val args = it.toRoute<FoodGraph.Add>()
-                    AddScreen(navController = navController, date = args.date, meal = args.meal)
+                    AddScreen(
+                        inputFieldPlaceHolder = placeHolder,
+                        navController = navController,
+                        date = args.date,
+                        meal = args.meal
+                    )
                 }
                 slidingComposable<FoodGraph.Scan> {
                     val args = it.toRoute<FoodGraph.Scan>()

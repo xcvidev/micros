@@ -32,46 +32,31 @@ fun DropDownChip(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
 
-        /*
-        FilterChip(
-            selected = expanded,
-            onClick = { expanded = !expanded },
-            label = { Text(selectedOption) },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = null
-                )
-            },
-            colors = FilterChipDefaults.filterChipColors(
-
-            )
-        )
-
-         */
 
         Button(
             onClick = {
                 expanded = !expanded
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                containerColor = containerColor
             )
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
             ) {
-                Text(text = selectedOption, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = selectedOption, color = contentColor)
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = contentColor
                 )
             }
         }

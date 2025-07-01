@@ -11,12 +11,91 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+
+
+@Composable
+fun StreamingTextCard(
+    title: String,
+    subtitle: String,
+    body: String,
+    modifier: Modifier = Modifier,
+    charDelayMillis: Long = 30L,
+    onClick: () -> Unit,
+    onFinished: (() -> Unit)? = null,
+) {
+    var visibleHeadline by remember { mutableStateOf("") }
+    var visibleSubhead by remember { mutableStateOf("") }
+    var visibleBody by remember { mutableStateOf("") }
+
+    LaunchedEffect(title, subtitle, body) {
+        visibleHeadline = ""
+        for (i in title.indices) {
+            visibleHeadline += title[i]
+            delay(charDelayMillis)
+        }
+        visibleSubhead = ""
+        for (i in subtitle.indices) {
+            visibleSubhead += subtitle[i]
+            delay(charDelayMillis)
+        }
+        visibleBody = ""
+        for (i in body.indices) {
+            visibleBody += body[i]
+            delay(charDelayMillis)
+        }
+        onFinished?.invoke()
+    }
+
+    OutlinedCard(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = visibleHeadline,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = visibleSubhead,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = visibleBody,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            )
+        }
+    }
+}
+
 
 
 @Composable

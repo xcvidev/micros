@@ -97,13 +97,13 @@ data class Portion(
 )
 
 data class Macros(
-    var  protein: Double,
-    var  carbs: Double,
-    var  fats: Double,
-    var  saturatedFats: Double,
-    var  sugars: Double,
-    var  salt: Double,
-    var  fiber: Double
+    var  protein: Double = 0.0,
+    var  carbs: Double = 0.0,
+    var  fats: Double = 0.0,
+    var  saturatedFats: Double = 0.0,
+    var  sugars: Double = 0.0,
+    var  salt: Double = 0.0,
+    var  fiber: Double =0.0
 )
 
 class Minerals

@@ -47,13 +47,11 @@ fun BarGraph(
     onValueChange: (Int) -> Unit,
     //modifier: Modifier = Modifier,
     tickSpacingDp: Dp = 70.dp,
-    graphHeight: Dp = 220.dp,
     selectedTextColor: Color = MaterialTheme.colorScheme.primary,
     unselectedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     selectedBarColor: Color = MaterialTheme.colorScheme.primary,
     barColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    containerColor: Color = Color.Transparent,
-    //containerColor: Color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f),
     horizontalClickTolerancePx: Float = 200f,
     verticalClickTolerancePx: Float = 150f,
 ) {
@@ -99,7 +97,6 @@ fun BarGraph(
         modifier = Modifier
             .background(containerColor)
             .fillMaxWidth()
-            .height(graphHeight)
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
                     val tapX = offset.x
@@ -152,28 +149,6 @@ fun BarGraph(
 
             labelBounds.clear()
 
-            /*
-            // Define shared label background box
-            val labelBackgroundTop = bottomY + 15f
-            val labelBackgroundBottom = bottomY + 110f
-            val labelBackgroundRect = Rect(
-                left = 0f,
-                top = labelBackgroundTop,
-                right = size.width,
-                bottom = labelBackgroundBottom
-            )
-            // Draw single background behind all labels
-            drawRoundRect(
-                color = labelBackgroundColor,
-                topLeft = Offset(labelBackgroundRect.left, labelBackgroundRect.top),
-                size = Size(
-                    width = labelBackgroundRect.width,
-                    height = labelBackgroundRect.height
-                ),
-                cornerRadius = CornerRadius(16f, 16f)
-            )
-             */
-
             yAxis.forEachIndexed { i, yValue ->
                 val x = startX + i * tickSpacingPx
                 if (x < -barWidth || x > size.width + barWidth) return@forEachIndexed
@@ -225,9 +200,7 @@ fun DotGraph(
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     tickSpacingDp: Dp = 70.dp,
-    graphHeight: Dp = 220.dp,
-    containerColor: Color = Color.Transparent,
-    //containerColor: Color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f),
     indicatorColor: Color = Color.Transparent,
     selectedDotColor: Color = MaterialTheme.colorScheme.primary,
     unselectedDotColor: Color = Color.Transparent,
@@ -279,7 +252,6 @@ fun DotGraph(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(graphHeight)
             .background(containerColor)
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
@@ -347,7 +319,8 @@ fun DotGraph(
 
                 val heightRatio = (yValue / maxY).coerceIn(0.0, 1.0)
                 val barHeight = (heightRatio * maxBarHeight).toFloat()
-                val y = bottomY - barHeight / 2f
+                //val y = bottomY - barHeight / 2f
+                val y = bottomY - barHeight
 
                 points += Offset(x, y)
             }
@@ -374,7 +347,8 @@ fun DotGraph(
 
                 val heightRatio = (calories / maxY).coerceIn(0.0, 1.0)
                 val barHeight = (heightRatio * maxBarHeight).toFloat()
-                val y = bottomY - barHeight / 2f
+               // val y = bottomY - barHeight / 2f
+                val y = bottomY - barHeight
 
                 val isSelected = i == clampedValue
                 val color = if (isSelected) selectedDotColor else unselectedDotColor

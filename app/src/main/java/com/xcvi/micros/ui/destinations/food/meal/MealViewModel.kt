@@ -17,17 +17,20 @@ class MealViewModel(
         val portions: List<Portion> = emptyList()
     )
 
+
     fun getData(date: Int, meal: Int){
 
     }
 
     fun increasePortion(portion: Portion){
         //repository.updatePortion(portion, portion.amount.nextAmount())
+
         getData(portion.date, portion.meal)
     }
 
     fun decreasePortion(portion: Portion){
         //repository.updatePortion(portion, portion.amount.previousAmount())
+
         getData(portion.date, portion.meal)
     }
 

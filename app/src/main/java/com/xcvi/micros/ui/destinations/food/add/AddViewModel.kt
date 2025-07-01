@@ -14,25 +14,76 @@ class AddViewModel(
     data class State(
         val query: String = "",
         val isGenerating: Boolean = false,
+        val isStreaming: Boolean = false,
 
         val portions: List<Portion> = emptyList(),
         val generated: Portion? = null
     )
 
     fun getData() {
-
+        updateData {
+            copy(
+                portions = repository.portions.subList(0,10),
+                generated = null
+            )
+        }
     }
 
-    fun generate(date: Int, meal: Int) {
-
+    fun generate(date: Int, meal: Int, onFailure: () -> Unit) {
+        if(state.isGenerating || state.isStreaming) return
+        if(state.query.isBlank()) {
+            onFailure()
+            return
+        }
+        viewModelScope.launch {
+            updateData {
+                copy(
+                    isStreaming = true,
+                    isGenerating = true,
+                    generated = null
+                )
+            }
+            delay(3000)
+            if(state.isGenerating){
+                updateData {
+                    copy(
+                        generated = repository.portions.random(),
+                        portions = emptyList(),
+                        isGenerating = false,
+                        isStreaming = true
+                    )
+                }
+            }
+        }
     }
 
     fun setQuery(query: String) {
+        if(state.isGenerating) return
         updateData {
             copy(
                 query = query,
                 portions = repository.portions.filter { it.name.contains(other = query, ignoreCase = true) },
                 generated = null
+            )
+        }
+    }
+
+    fun stop(){
+        updateData {
+            copy(
+                query = "",
+                isGenerating = false,
+                isStreaming = false,
+                generated = null,
+                portions = repository.portions
+            )
+        }
+    }
+
+    fun onFinishedStreamingText(){
+        updateData {
+            copy(
+                isStreaming = false,
             )
         }
     }

@@ -1,9 +1,7 @@
 package com.xcvi.micros.ui.destinations.food.dashboard
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,22 +13,14 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.domain.Portion
@@ -39,7 +29,7 @@ import com.xcvi.micros.domain.summary
 import com.xcvi.micros.ui.core.DateSelector
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.destinations.FoodGraph
-import com.xcvi.micros.ui.destinations.food.SummaryCard
+import com.xcvi.micros.ui.destinations.food.FoodSummaryCard
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -84,17 +74,17 @@ fun FoodScreen(
                     },
                     horizontalPadding = 24.dp
                 )
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(40.dp))
             }
 
             item(span = StaggeredGridItemSpan.FullLine) {
-                SummaryCard(
+                FoodSummaryCard(
                     calories = state.summary?.calories?.toInt()?: 0,
                     protein = state.summary?.macros?.protein?: 0.0,
                     carbs = state.summary?.macros?.carbs?: 0.0,
-                    fats = state.summary?.macros?.fats ?: 0.0
+                    fats = state.summary?.macros?.fats ?: 0.0,
+                    modifier = Modifier.padding(vertical = 40.dp)
                 )
-                Spacer(modifier = Modifier.height(120.dp))
             }
             val meals = state.meals
             items(meals.keys.toList()) { index ->
@@ -185,14 +175,9 @@ fun MealCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
-                // Action Button
-                TextButton(
-                    onClick = { onClick() },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text(actionButtonText, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
