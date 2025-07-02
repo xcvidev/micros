@@ -25,7 +25,6 @@ class ScanViewModel(
                     onSuccess()
                 }
                 is Response.Error -> {
-                    updateData { copy(isLoading = false) }
                     onFailure()
                 }
             }

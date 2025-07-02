@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +54,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun NumberPicker(
+    onImeAction: () -> Unit,
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     tickColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -68,6 +70,7 @@ fun NumberPicker(
 ) {
     val tickSpacingPx = with(LocalDensity.current) { tickSpacingDp.toPx() }
     val maxOffset = (valueRange.last - valueRange.first) * tickSpacingPx
+    var isEditing by remember { mutableStateOf(false) }
 
     val scrollOffsetAnim =
         remember { Animatable((initialValue - valueRange.first) * tickSpacingPx) }
@@ -87,6 +90,7 @@ fun NumberPicker(
 
     // Snap to nearest tick after scroll ends
     LaunchedEffect(scrollState.isScrollInProgress) {
+        onImeAction()
         if (!scrollState.isScrollInProgress) {
             val nearestTick = (scrollOffsetAnim.value / tickSpacingPx).roundToInt()
             val targetOffset = nearestTick * tickSpacingPx
@@ -100,6 +104,7 @@ fun NumberPicker(
             .height(100.dp)
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
+
                     val tapX = offset.x
                     val centerX = size.width / 2f
                     val relativeX = scrollOffsetAnim.value + (tapX - centerX)
@@ -181,7 +186,7 @@ fun NumberPicker(
                 )
             )
         }
-        var isEditing by remember { mutableStateOf(false) }
+
 
         LaunchedEffect(clampedValue, isEditing) {
             if (!isEditing && textValue.text != clampedValue.toString()) {
@@ -237,7 +242,12 @@ fun NumberPicker(
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 1,
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onImeAction()
+                    }
+                ),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,

@@ -46,7 +46,6 @@ import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateSelector(
     currentDate: Int,
@@ -94,7 +93,9 @@ fun DateSelector(
             StreamingText(
                 fullText = buttonText,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                style = MaterialTheme.typography.titleSmall,
+
             )
         }
         IconButton(
@@ -136,7 +137,7 @@ fun DateSelectorDialog(
     DatePickerDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            Button(
+            TextButton(
                 modifier = modifier.padding(4.dp),
                 onClick = {
                     onDismissRequest()
@@ -147,14 +148,6 @@ fun DateSelectorDialog(
                     )
                 }) {
                 Text(text = "Ok")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = { onDismissRequest() },
-                modifier = modifier.padding(4.dp)
-            ) {
-                Text(text = "Cancel")
             }
         },
         content = {

@@ -3,6 +3,7 @@ package com.xcvi.micros.ui.destinations.food.meal
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,14 +45,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.xcvi.micros.domain.Portion
+import com.xcvi.micros.R
+import com.xcvi.micros.data.entity.AminoAcids
+import com.xcvi.micros.data.entity.Macros
+import com.xcvi.micros.data.entity.Minerals
+import com.xcvi.micros.data.entity.Portion
+import com.xcvi.micros.data.entity.Vitamins
+import com.xcvi.micros.domain.roundDecimals
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.destinations.FoodGraph
 import com.xcvi.micros.ui.destinations.food.FoodSummary
-import com.xcvi.micros.ui.destinations.food.FoodSummaryCard
+import com.xcvi.micros.ui.destinations.food.MacroLabel
+import com.xcvi.micros.ui.destinations.food.dashboard.MicrosSection
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -63,10 +72,14 @@ fun MealScreen(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     viewModel: MealViewModel = koinViewModel(),
-    topAppBarText: String = "Meal $meal",
-    inputDialogTitle: String = "Save this meal",
-    inputDialogPlaceholder: String = "Enter a name",
-    saveMealButtonText: String = "Save custom meal"
+    topAppBarText: String,
+    inputDialogTitle: String ,
+    inputDialogPlaceholder: String,
+    saveMealButtonText: String ,
+    macroTitle: String ,
+    aminoTitle: String,
+    mineralTitle: String,
+    vitaminTitle: String,
 ) {
     OnNavigation {
         viewModel.getData(date = date, meal = meal)
@@ -120,12 +133,17 @@ fun MealScreen(
         ) {
             item {
                 FoodSummary(
-                    calories = summary?.calories?.roundToInt() ?: 0,
-                    protein = summary?.macros?.protein ?: 0.0,
-                    carbs = summary?.macros?.carbs ?: 0.0,
-                    fats = summary?.macros?.fats ?: 0.0,
+                    proteinLabel = stringResource(R.string.protein),
+                    carbsLabel = stringResource(R.string.carbs),
+                    fatsLabel = stringResource(R.string.fats),
+                    calories = summary?.macros?.calories?.roundToInt() ?: 0,
+                    protein = summary?.macros?.protein?.roundDecimals() ?: 0.0,
+                    carbs = summary?.macros?.carbohydrates?.roundDecimals() ?: 0.0,
+                    fats = summary?.macros?.fats?.roundDecimals() ?: 0.0,
                     backgroundColor = Color.Transparent,
-                    modifier = Modifier.fillMaxSize().padding(8.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)
                 )
             }
 
@@ -144,7 +162,10 @@ fun MealScreen(
                 }
             }
             itemsIndexed(portions) { index, item ->
-                HorizontalDivider()
+                HorizontalDivider(
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                )
                 PortionItem(
                     onIncrease = { viewModel.increasePortion(item) },
                     onDecrease = { viewModel.decreasePortion(item) },
@@ -153,7 +174,7 @@ fun MealScreen(
                             FoodGraph.Details(
                                 meal = meal,
                                 date = date,
-                                amount = item.amount.roundToInt(),
+                                amount = item.amountInGrams.roundToInt(),
                                 barcode = item.barcode
                             )
                         )
@@ -161,11 +182,29 @@ fun MealScreen(
                     item = item,
                 )
             }
-            if (portions.isNotEmpty()) {
-                item {
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(150.dp))
+
+            item {
+                if (portions.isNotEmpty()) {
+                    HorizontalDivider(
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    )
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                MicrosSection(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    aminoTitle = aminoTitle,
+                    macroTitle = macroTitle,
+                    mineralTitle = mineralTitle,
+                    vitaminTitle = vitaminTitle,
+                    macros = summary?.macros ?: Macros(),
+                    minerals = summary?.minerals ?: Minerals(),
+                    vitamins = summary?.vitamins ?: Vitamins(),
+                    aminoAcids = summary?.aminoAcids ?: AminoAcids()
+                )
+
+                Spacer(modifier = Modifier.height(150.dp))
             }
         }
     }
@@ -178,51 +217,74 @@ private fun PortionItem(
     onClick: () -> Unit,
     item: Portion, modifier: Modifier = Modifier
 ) {
-    ListItem(
+    Column(
         modifier = modifier.clickable {
             onClick()
-        },
-        headlineContent = {
-            Text(text = item.name)
-        },
-        supportingContent = {
-            Text(text = "${item.calories} kcal, ${item.amount}g")
-        },
-        trailingContent = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onDecrease,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
-                    contentPadding = PaddingValues(0.dp), // Remove internal padding
-                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(0.8f))
+        }
+    ){
+        Spacer(modifier = Modifier.height(4.dp))
+        ListItem(
+            headlineContent = {
+                Text(
+                    text = item.name,
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    fontWeight = MaterialTheme.typography.bodyLarge.fontWeight,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            },
+            supportingContent = {
+                Text(
+                    text = "${item.macros.calories.roundToInt()} kcal, ${item.amountInGrams.roundToInt()}g",
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            },
+            trailingContent = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        Icons.Default.Remove,
-                        "",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(0.8f)
-                    )
-                }
-                OutlinedButton(
-                    onClick = onIncrease,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
-                    contentPadding = PaddingValues(0.dp), // Remove internal padding
-                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(0.8f))
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        "",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(0.8f)
-                    )
+                    OutlinedButton(
+                        onClick = onDecrease,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentPadding = PaddingValues(0.dp), // Remove internal padding
+                        border = BorderStroke(
+                            0.5.dp,
+                            MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Remove,
+                            "",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = onIncrease,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentPadding = PaddingValues(0.dp), // Remove internal padding
+                        border = BorderStroke(
+                            0.5.dp,
+                            MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            "",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                        )
+                    }
                 }
             }
-        }
-    )
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+    }
 }
 
 @Composable

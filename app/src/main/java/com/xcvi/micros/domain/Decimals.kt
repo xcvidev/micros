@@ -4,10 +4,17 @@ import android.health.connect.datatypes.units.Percentage
 import java.util.Locale
 import kotlin.math.roundToInt
 
-fun List<Double>.normalize(scale: Double = 0.01): List<Double> {
+fun List<Double?>.normalize(scale: Double = 0.0): List<Double?> {
     if(this.isEmpty()) return this
-    val min = this.min()
-    return this.map { it - min + min*scale }
+    val min = this.filterNotNull().minOf { it }
+    return this.map {
+        if (it == null) {
+            null
+        }
+        else{
+            it - min + min*scale
+        }
+    }
 }
 
 fun Double.nextAmount(): Double {

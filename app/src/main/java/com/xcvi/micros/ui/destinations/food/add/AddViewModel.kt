@@ -1,8 +1,8 @@
 package com.xcvi.micros.ui.destinations.food.add
 
 import androidx.lifecycle.viewModelScope
+import com.xcvi.micros.data.entity.Portion
 import com.xcvi.micros.domain.FoodRepository
-import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.ui.BaseViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

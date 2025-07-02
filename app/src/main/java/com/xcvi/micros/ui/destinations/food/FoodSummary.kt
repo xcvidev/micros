@@ -38,9 +38,9 @@ fun FoodSummary(
     fats: Double,
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f),
-    proteinLabel: String = "Protein",
-    carbsLabel: String = "Carbohydrates",
-    fatsLabel: String = "Fats"
+    proteinLabel: String ,
+    carbsLabel: String ,
+    fatsLabel: String
 ) {
     Column(
         modifier = modifier
@@ -219,9 +219,9 @@ fun FoodSummaryCard(
     fats: Double,
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.Transparent,
-    proteinLabel: String = "Protein",
-    carbsLabel: String = "Carbohydrates",
-    fatsLabel: String = "Fats"
+    proteinLabel: String ,
+    carbsLabel: String ,
+    fatsLabel: String
 ) {
     Card(
         modifier = modifier,

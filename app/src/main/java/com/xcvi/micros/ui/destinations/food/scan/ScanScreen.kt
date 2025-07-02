@@ -1,7 +1,6 @@
 package com.xcvi.micros.ui.destinations.food.scan
 
 import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,12 +12,19 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,18 +43,71 @@ fun ScanScreen(
     meal: Int,
     modifier: Modifier = Modifier,
     viewModel: ScanViewModel = koinViewModel(),
-    scanFailureMessage: String = "Product not found.",
-    scanHintText: String = "Scan product barcode",
-    allowButtonText: String = "Allow",
-    cancelButtonText: String = "Cancel",
-    permissionDialogTitle: String = "Permission required",
-    permissionDialogText: String = "This app requires camera permission to scan barcodes.",
-    permissionDeniedText: String = "Camera permission denied. Please grant the permission in app settings.",
-    openSettingsButtonText: String = "Open settings",
+    scanFailureMessage: String ,
+    scanHintText: String ,
+    allowButtonText: String,
+    cancelButtonText: String ,
+    permissionDialogTitle: String,
+    permissionDialogText: String ,
+    permissionDeniedText: String ,
+    openSettingsButtonText: String ,
+    failureDialogText: String,
+    retryButtonText: String ,
 ) {
     val state = viewModel.state
     val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
 
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+                navController.navigate(
+                    FoodGraph.Add(meal = meal, date = date)
+                ) {
+                    popUpTo(FoodGraph.Add(meal = meal, date = date)) {
+                        inclusive = true
+                    }
+                }
+            },
+            title = {
+                Text(scanFailureMessage)
+            },
+            text = { Text(failureDialogText) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                        navController.navigate(
+                            FoodGraph.Scan(meal = meal, date = date)
+                        ) {
+                            popUpTo(FoodGraph.Scan(meal = meal, date = date)) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                ) {
+                    Text(retryButtonText)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDialog = false
+                        navController.navigate(
+                            FoodGraph.Add(meal = meal, date = date)
+                        ) {
+                            popUpTo(FoodGraph.Add(meal = meal, date = date)) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                ) {
+                    Text(cancelButtonText)
+                }
+            }
+        )
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         if (state.isLoading) {
@@ -85,18 +144,8 @@ fun ScanScreen(
                             }
                         },
                         onFailure = {
-                            Toast.makeText(
-                                context,
-                                scanFailureMessage,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            navController.navigate(
-                                FoodGraph.Scan(meal = meal, date = date)
-                            ) {
-                                popUpTo(FoodGraph.Scan(meal = meal, date = date)) {
-                                    inclusive = true
-                                }
-                            }
+                            barcodeScanner?.close()
+                            showDialog = true
                         }
                     )
                 },
@@ -114,8 +163,7 @@ fun ScanScreen(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(4.dp)
-                ,
+                    .padding(4.dp),
                 onClick = { navController.popBackStack() }
             ) {
                 Icon(

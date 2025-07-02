@@ -1,11 +1,9 @@
 package com.xcvi.micros.ui.destinations.food.meal
 
+import com.xcvi.micros.data.entity.Portion
 import com.xcvi.micros.domain.FoodRepository
-import com.xcvi.micros.domain.Portion
 import com.xcvi.micros.domain.summary
 import com.xcvi.micros.ui.BaseViewModel
-import com.xcvi.micros.domain.nextAmount
-import com.xcvi.micros.domain.previousAmount
 
 class MealViewModel(
     private val repository: FoodRepository
@@ -19,7 +17,10 @@ class MealViewModel(
 
 
     fun getData(date: Int, meal: Int){
-
+        val portions = repository.portions.subList(1,8)
+        updateData {
+            copy(portions = portions, summary = portions.summary(date))
+        }
     }
 
     fun increasePortion(portion: Portion){

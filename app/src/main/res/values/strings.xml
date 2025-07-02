@@ -4,4 +4,113 @@
     <string name="bottombar_label_weight">Weight</string>
     <string name="bottombar_label_stats">Stats</string>
     <string name="today">Today</string>
+
+
+    <!-- Amino Acids -->
+    <string name="alanine">Alanine</string>
+    <string name="arginine">Arginine</string>
+    <string name="asparagine">Asparagine</string>
+    <string name="aspartic_acid">Aspartic Acid</string>
+    <string name="cystine">Cystine</string>
+
+    <string name="glutamic_acid">Glutamic Acid</string>
+    <string name="glutamine">Glutamine</string>
+    <string name="glycine">Glycine</string>
+    <string name="histidine">Histidine</string>
+    <string name="isoleucine">Isoleucine</string>
+
+    <string name="leucine">Leucine</string>
+    <string name="lysine">Lysine</string>
+    <string name="methionine">Methionine</string>
+    <string name="phenylalanine">Phenylalanine</string>
+    <string name="proline">Proline</string>
+
+    <string name="serine">Serine</string>
+    <string name="threonine">Threonine</string>
+    <string name="tryptophan">Tryptophan</string>
+    <string name="tyrosine">Tyrosine</string>
+    <string name="valine">Valine</string>
+
+    <!--  Macros  -->
+    <string name="calories">Calories</string>
+    <string name="protein">Protein</string>
+    <string name="carbs">Carbohydrates</string>
+    <string name="fats">Fats</string>
+    <string name="saturated_fats">Saturated Fats</string>
+    <string name="fiber">Fiber</string>
+    <string name="sugars">Sugars</string>
+    <string name="salt">Salt</string>
+
+    <!--  Minerals  -->
+    <string name="calcium">Calcium</string>
+    <string name="copper">Copper</string>
+    <string name="fluoride">Fluoride</string>
+    <string name="iron">Iron</string>
+    <string name="magnesium">Magnesium</string>
+    <string name="manganese">Manganese</string>
+    <string name="phosphorus">Phosphorus</string>
+    <string name="potassium">Potassium</string>
+    <string name="selenium">Selenium</string>
+    <string name="sodium">Sodium</string>
+    <string name="zinc">Zinc</string>
+
+    <!--  Vitamins  -->
+    <string name="vitaminA">Vitamin A</string>
+    <string name="vitaminB1">Vitamin B1 (Thiamine)</string>
+    <string name="vitaminB2">Vitamin B2 (Riboflavin)</string>
+    <string name="vitaminB3">Vitamin B3 (Niacin)</string>
+    <string name="vitaminB4">Vitamin B4 (Choline)</string>
+    <string name="vitaminB5">Vitamin B5 (Pantothenic Acid)</string>
+    <string name="vitaminB6">Vitamin B6 (Pyridoxine)</string>
+    <string name="vitaminB9">Vitamin B9 (Folate)</string>
+    <string name="vitaminB12">Vitamin B12 (Cobalamin)</string>
+    <string name="vitaminC">Vitamin C (Ascorbic Acid)</string>
+    <string name="vitaminD">Vitamin D</string>
+    <string name="vitaminE">Vitamin E</string>
+    <string name="vitaminK">Vitamin K</string>
+    <string name="food_log_app_bar_title">Food Log</string>
+    <string name="amino_acids">Amino Acids</string>
+    <string name="macros">Macros</string>
+    <string name="minerals">Minerals</string>
+    <string name="vitamins">Vitamins</string>
+    <string name="weight_manager">Weight Manager</string>
+    <string name="delete">Delete</string>
+    <string name="are_you_sure_you_want_to_delete_this_weight_entry">Are you sure you want to delete this weight entry?</string>
+    <string name="no_weights_measured_this_week">No weights measured this week.</string>
+    <string name="save">Save</string>
+    <string name="stats">Stats</string>
+    <string name="no_food_data">No food data.</string>
+    <string name="no_measured_weights">No measured weights.</string>
+    <string name="max">Max</string>
+    <string name="min">Min</string>
+    <string name="avg">Avg</string>
+    <string name="meal">Meal</string>
+    <string name="enter_a_name">Enter a name</string>
+    <string name="save_custom_meal">Save custom meal</string>
+    <string name="describe_your_food">Describe your food...</string>
+    <string name="try_a_plate_of_pasta_with_tomato_sauce">Try a plate of pasta with tomato sauce</string>
+    <string name="describe_what_you_ate">Describe what you ate</string>
+    <string name="scan_barcode">Scan Barcode</string>
+    <string name="generating">Generating...</string>
+    <string name="recently_added">Recently Added</string>
+    <string name="product_not_found">Product not found.</string>
+    <string name="scan_product_barcode">Scan product barcode</string>
+    <string name="allow">Allow</string>
+    <string name="cancel">Cancel</string>
+    <string name="permission_required">Permission required</string>
+    <string name="this_app_requires_camera_permission_to_scan_barcodes">This app requires camera permission to scan barcodes.</string>
+    <string name="camera_permission_denied_text">Camera permission denied. Please grant the permission in app settings.</string>
+    <string name="open_settings">Open settings</string>
+    <string name="retry_dialog_text">Try scanning again. If you can\'t scan the barcode. Try searching or describing your food.</string>
+    <string name="retry">Retry</string>
+    <string name="error">Error</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="amino_acids_for_100_g">Amino Acids for 100 g</string>
+    <string name="macros_for_100_g">Macros for 100 g</string>
+    <string name="minerals_for_100_g">Minerals for 100 g</string>
+    <string name="vitamins_for_100_g">Vitamins for 100 g</string>
+    <string name="filter1">Week</string>
+    <string name="filter2">Month</string>
+
+
 </resources>

@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.xcvi.micros.domain.Portion
+import com.xcvi.micros.data.entity.Portion
 import com.xcvi.micros.domain.monthFormatted
 import com.xcvi.micros.ui.core.BarGraph
 import com.xcvi.micros.ui.core.DotGraph
@@ -34,7 +34,7 @@ fun FoodGraph(
     } else {
         val dates = data.keys.toList()
         val foods = data.values.toList()
-        val calories = foods.map { it.calories.roundToInt() }
+        val calories = foods.map { it.macros.calories.roundToInt() }
         val labels = if (showDate) {
             dates.map {
                 "${it.monthFormatted(true)} ${it.dayOfMonth}"
@@ -78,8 +78,6 @@ private fun EmptyGraph(
                     1
                 ).monthFormatted(true)
             },
-            maxY = 1.0,
-            indicatorColor = Color.Transparent,
             lineColor = Color.Transparent,
         )
         Text(text = noDataText, Modifier.align(Alignment.Center))

@@ -58,12 +58,12 @@ import org.koin.androidx.compose.koinViewModel
 fun WeightScreen(
     modifier: Modifier = Modifier,
     viewModel: WeightViewModel = koinViewModel(),
-    topAppBarTitle: String = "Weight Manager",
-    deleteDialogTitle: String = "Delete weight",
-    deleteDialogText: String = "Are you sure you want to delete this weight?",
-    deleteDialogButtonText: String = "Delete",
-    saveButtonText: String = "Save",
-    noWeightsText: String = "No weights saved this week.",
+    topAppBarTitle: String ,
+    deleteDialogTitle: String,
+    deleteDialogText: String,
+    deleteDialogButtonText: String,
+    saveButtonText: String,
+    noWeightsText: String ,
 
 ) {
     val state = viewModel.state
@@ -98,7 +98,6 @@ fun WeightScreen(
                 }
             }
         )
-
     }
     Scaffold(
         topBar = {

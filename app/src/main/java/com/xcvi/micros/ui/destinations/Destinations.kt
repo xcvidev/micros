@@ -5,13 +5,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.MonitorWeight
-import androidx.compose.material.icons.filled.QueryStats
-import androidx.compose.material.icons.outlined.Fastfood
-import androidx.compose.material.icons.outlined.MonitorWeight
-import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
@@ -22,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -63,39 +56,91 @@ fun Destinations(
             ) {
                 //main graph
                 composable(FoodGraph.label) {
-                    FoodScreen(navController)
+                    FoodScreen(
+                        navController = navController,
+                        topAppBarTitle = stringResource(R.string.food_log_app_bar_title),
+                        aminoTitle = stringResource(R.string.amino_acids),
+                        macroTitle = stringResource(R.string.macros),
+                        mineralTitle = stringResource(R.string.minerals),
+                        vitaminTitle = stringResource(R.string.vitamins),
+                    )
                 }
                 composable(WeightGraph.label) {
-                    WeightScreen()
+                    WeightScreen(
+                        topAppBarTitle = stringResource(R.string.weight_manager),
+                        deleteDialogTitle = stringResource(R.string.delete),
+                        deleteDialogText = stringResource(R.string.are_you_sure_you_want_to_delete_this_weight_entry),
+                        noWeightsText = stringResource(R.string.no_weights_measured_this_week),
+                        deleteDialogButtonText = stringResource(R.string.delete),
+                        saveButtonText = stringResource(R.string.save)
+                    )
                 }
                 composable(StatsGraph.label) {
-                    StatsScreen(bottomBarPadding = scaffoldPadding.calculateBottomPadding())
+                    StatsScreen(
+                        topAppBarTitle = stringResource(R.string.stats),
+                        bottomBarPadding = scaffoldPadding.calculateBottomPadding(),
+                        noFoodDataText = stringResource(R.string.no_food_data),
+                        noWeightDataText = stringResource(R.string.no_measured_weights),
+                        maxLabel = stringResource(R.string.max),
+                        minLabel = stringResource(R.string.min),
+                        avgLabel = stringResource(R.string.avg)
+                    )
                 }
 
                 //food graph
                 slidingComposable<FoodGraph.Meal> {
                     val args = it.toRoute<FoodGraph.Meal>()
-                    MealScreen(navController = navController, date = args.date, meal = args.meal)
+                    MealScreen(
+                        navController = navController,
+                        date = args.date,
+                        meal = args.meal,
+                        topAppBarText = stringResource(R.string.meal) + " ${args.meal}",
+                        inputDialogTitle = stringResource(R.string.save),
+                        inputDialogPlaceholder = stringResource(R.string.enter_a_name),
+                        saveMealButtonText = stringResource(R.string.save_custom_meal),
+                        macroTitle = stringResource(R.string.macros),
+                        aminoTitle = stringResource(R.string.amino_acids),
+                        mineralTitle = stringResource(R.string.minerals),
+                        vitaminTitle = stringResource(R.string.vitamins)
+                    )
                 }
                 slidingComposable<FoodGraph.Add> {
                     val promptFieldPlaceholders = listOf(
-                        "Describe your food...",
-                        "Try a plate of pasta with tomato sauce",
-                        "Describe what you ate",
+                        stringResource(R.string.describe_your_food),
+                        stringResource(R.string.try_a_plate_of_pasta_with_tomato_sauce),
+                        stringResource(R.string.describe_what_you_ate),
                     )
                     val placeHolder = remember { promptFieldPlaceholders.random() }
                     val args = it.toRoute<FoodGraph.Add>()
                     AddScreen(
-                        inputFieldPlaceHolder = placeHolder,
                         navController = navController,
                         date = args.date,
-                        meal = args.meal
+                        meal = args.meal,
+                        inputFieldPlaceHolder = placeHolder,
+                        scanButtonText = stringResource(R.string.scan_barcode),
+                        generatingIndicatorText = stringResource(R.string.generating),
+                        proteinLabel = stringResource(R.string.protein),
+                        carbsLabel = stringResource(R.string.carbs),
+                        fatsLabel = stringResource(R.string.fats),
+                        recentlyAddedText = stringResource(R.string.recently_added),
                     )
                 }
                 slidingComposable<FoodGraph.Scan> {
                     val args = it.toRoute<FoodGraph.Scan>()
                     ScanScreen(
-                        navController =  navController, date = args.date, meal = args.meal
+                        navController = navController,
+                        date = args.date,
+                        meal = args.meal,
+                        scanFailureMessage = stringResource(R.string.product_not_found),
+                        scanHintText = stringResource(R.string.scan_product_barcode),
+                        allowButtonText = stringResource(R.string.allow),
+                        cancelButtonText = stringResource(R.string.cancel),
+                        permissionDialogTitle = stringResource(R.string.permission_required),
+                        permissionDialogText = stringResource(R.string.this_app_requires_camera_permission_to_scan_barcodes),
+                        permissionDeniedText = stringResource(R.string.camera_permission_denied_text),
+                        openSettingsButtonText = stringResource(R.string.open_settings),
+                        failureDialogText = stringResource(R.string.retry_dialog_text),
+                        retryButtonText = stringResource(R.string.retry),
                     )
                 }
                 slidingComposable<FoodGraph.Details> {
@@ -105,7 +150,13 @@ fun Destinations(
                         date = args.date,
                         meal = args.meal,
                         amount = args.amount,
-                        barcode = args.barcode
+                        barcode = args.barcode,
+                        errorTitle = stringResource(R.string.error),
+                        errorMessage = stringResource(R.string.something_went_wrong),
+                        aminoTitle = stringResource(R.string.amino_acids_for_100_g),
+                        macroTitle = stringResource(R.string.macros_for_100_g),
+                        mineralTitle = stringResource(R.string.minerals_for_100_g),
+                        vitaminTitle = stringResource(R.string.vitamins_for_100_g),
                     )
                 }
             }
@@ -146,9 +197,15 @@ fun BottomBar(
                     },
                     icon = {
                         if (currentDestination == destination) {
-                            Icon(destination.selectedIcon, contentDescription = destination.label)
+                            Icon(
+                                painterResource(destination.selectedIcon),
+                                contentDescription = destination.label
+                            )
                         } else {
-                            Icon(destination.unselectedIcon, contentDescription = destination.label)
+                            Icon(
+                                painterResource(destination.unselectedIcon),
+                                contentDescription = destination.label
+                            )
                         }
                     },
                     label = { Text(label) }
@@ -162,15 +219,15 @@ fun BottomBar(
 
 sealed interface Destination {
     val label: String
-    val selectedIcon: ImageVector
-    val unselectedIcon: ImageVector
+    val selectedIcon: Int
+    val unselectedIcon: Int
 }
 
 @Serializable
 data object FoodGraph : Destination {
     override val label = "food_label"
-    override val selectedIcon = Icons.Filled.Fastfood
-    override val unselectedIcon = Icons.Outlined.Fastfood
+    override val selectedIcon = R.drawable.ic_food
+    override val unselectedIcon = R.drawable.ic_food_outlined
 
     @Serializable
     data class Meal(
@@ -203,15 +260,15 @@ data object FoodGraph : Destination {
 @Serializable
 data object WeightGraph : Destination {
     override val label = "weight_label"
-    override val selectedIcon = Icons.Filled.MonitorWeight
-    override val unselectedIcon = Icons.Outlined.MonitorWeight
+    override val selectedIcon = R.drawable.ic_scale_filled
+    override val unselectedIcon = R.drawable.ic_scale
 }
 
 @Serializable
 data object StatsGraph : Destination {
     override val label = "stats_label"
-    override val selectedIcon = Icons.Filled.QueryStats
-    override val unselectedIcon = Icons.Outlined.QueryStats
+    override val selectedIcon = R.drawable.ic_graph
+    override val unselectedIcon = R.drawable.ic_graph_outlined
 }
 
 
@@ -219,7 +276,7 @@ fun getCurrentTypedDestination(entry: NavBackStackEntry?): Destination? {
     entry?.destination?.hierarchy?.forEach { destination ->
         when (destination.route) {
             FoodGraph.label -> return FoodGraph
-            WeightGraph.label-> return WeightGraph
+            WeightGraph.label -> return WeightGraph
             StatsGraph.label -> return StatsGraph
         }
     }

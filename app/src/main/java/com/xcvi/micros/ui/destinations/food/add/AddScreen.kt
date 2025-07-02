@@ -47,7 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.R
-import com.xcvi.micros.domain.Portion
+import com.xcvi.micros.data.entity.Portion
 import com.xcvi.micros.ui.core.BackIcon
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.core.StreamingText
@@ -61,14 +61,13 @@ import kotlin.math.roundToInt
 @Composable
 fun AddScreen(
     modifier: Modifier = Modifier,
-    inputFieldPlaceHolder: String = "Describe food",
-    scanButtonText: String = "Scan Barcode",
-    generatingIndicatorText: String = "Generating...",
-    caloriesLabel: String = "Calories",
-    proteinLabel: String = "Protein",
-    carbsLabel: String = "Carbs",
-    fatsLabel: String = "Fats",
-    recentlyAddedText: String = "Recently Added",
+    inputFieldPlaceHolder: String ,
+    scanButtonText: String,
+    generatingIndicatorText: String ,
+    proteinLabel: String ,
+    carbsLabel: String ,
+    fatsLabel: String ,
+    recentlyAddedText: String ,
     date: Int,
     meal: Int,
     navController: NavHostController,
@@ -174,7 +173,7 @@ fun AddScreen(
                                     FoodGraph.Details(
                                         meal = meal,
                                         date = date,
-                                        amount = generated.amount.roundToInt(),
+                                        amount = generated.amountInGrams.roundToInt(),
                                         barcode = generated.barcode
                                     )
                                 )
@@ -201,7 +200,7 @@ fun AddScreen(
                                     FoodGraph.Details(
                                         meal = meal,
                                         date = date,
-                                        amount = recent.amount.roundToInt(),
+                                        amount = recent.amountInGrams.roundToInt(),
                                         barcode = recent.barcode
                                     )
                                 )
@@ -248,7 +247,7 @@ fun RecentsItem(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "${portion.calories} kcal, ${portion.amount} g",
+                text = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
                 fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                 fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
                 style = MaterialTheme.typography.bodyMedium,
@@ -270,45 +269,14 @@ fun GeneratedItem(
 ) {
     StreamingTextCard(
         title = portion.name,
-        subtitle = "${portion.calories} kcal, ${portion.amount} g",
-        body = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbs} g\n$fatsLabel: ${portion.macros.fats} g ",
+        subtitle = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
+        body = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbohydrates} g\n$fatsLabel: ${portion.macros.fats} g ",
         onClick = onClick,
         onFinished = onFinished
     )
 }
 
-/*
-OutlinedCard(
-        onClick = onClick,
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = portion.name,
-                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                fontWeight = MaterialTheme.typography.titleMedium.fontWeight,
-                style = MaterialTheme.typography.titleMedium
-            )
-            StreamingText(
-                charDelayMillis = 30,
-                fullText = "${portion.calories} kcal, ${portion.amount} g",
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-            )
-            StreamingText(
-                charDelayMillis = 30,
-                fullText = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbs} g\n$fatsLabel: ${portion.macros.fats} g ",
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-            )
-        }
-    }
- */
+
 
 @Composable
 fun PromptField(
