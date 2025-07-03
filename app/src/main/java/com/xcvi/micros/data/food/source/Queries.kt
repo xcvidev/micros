@@ -4,14 +4,18 @@ package com.xcvi.micros.data.food.source
 
 const val getRecents =
     """
-    SELECT * FROM portions
-    WHERE (barcode, date) IN (
-        SELECT barcode, MAX(date)
-        FROM portions
-        GROUP BY barcode
-    ) AND date > 0
-    ORDER BY date DESC
-    LIMIT 20
+    SELECT *
+    FROM portions
+    WHERE isFavorite = 1
+    OR (
+        (barcode, date) IN (
+            SELECT barcode, MAX(date)
+            FROM portions
+            GROUP BY barcode
+        )
+    )
+    ORDER BY date
+    LIMIT 30;
 """
 
 const val sumMacrosByDate =

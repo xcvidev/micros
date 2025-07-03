@@ -77,7 +77,7 @@ class FoodViewModel(
     fun delete(onError: () -> Unit) {
         viewModelScope.launch {
             val portion = state.deletePortion ?: return@launch
-            val res = repository.updatePortion(portion, -1.0)
+            val res = repository.delete(portion)
             if (res.isError) {
                 onError()
             } else {
@@ -91,7 +91,6 @@ class FoodViewModel(
 
     fun saveCustomMeal(
         name: String,
-        meal: Int,
         portions: List<Portion>,
         onError: () -> Unit,
         onSuccess: () -> Unit

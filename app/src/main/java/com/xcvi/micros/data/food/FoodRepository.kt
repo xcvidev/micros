@@ -75,7 +75,10 @@ class FoodRepository(
             val recents = withContext(Dispatchers.IO) {
                 dao.getPortions()
             }
-            return Response.Success(recents)
+            return withContext(Dispatchers.IO){
+                val res = recents.distinctBy { it.barcode }
+                Response.Success(res)
+            }
         } catch (e: Exception) {
             return Response.Error(e)
         }
@@ -102,15 +105,19 @@ class FoodRepository(
     /**
      * Dashboard
      */
+    suspend fun delete(portion: Portion): Response<Unit>{
+        return try{
+            withContext(Dispatchers.IO){
+                dao.deletePortion(portion)
+            }
+            Response.Success(Unit)
+        } catch (e: Exception){
+            Response.Error(e)
+        }
+    }
+
     suspend fun updatePortion(portion: Portion, amount: Double): Response<Unit> {
         return try {
-            if (portion.amountInGrams == amount) {
-                return Response.Success(Unit)
-            }
-            if (amount <= 0.0) {
-                withContext(Dispatchers.IO) { dao.deletePortion(portion) }
-                return Response.Success(Unit)
-            }
             val updatedPortion =
                 withContext(Dispatchers.Default) { portion.scaledTo(amount).roundDecimals() }
             withContext(Dispatchers.IO) { dao.upsertPortion(updatedPortion) }

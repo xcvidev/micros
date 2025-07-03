@@ -101,7 +101,6 @@ fun MealScreen(
             onConfirm = { name ->
                 viewModel.saveCustomMeal(
                     name = name,
-                    meal = meal,
                     portions = portions,
                     onError = { shakeTrigger = true },
                     onSuccess = { showInputDialog = false }
