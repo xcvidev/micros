@@ -75,7 +75,7 @@
     <string name="vitamins">Vitamins</string>
     <string name="weight_manager">Weight Manager</string>
     <string name="delete">Delete</string>
-    <string name="are_you_sure_you_want_to_delete_this_weight_entry">Are you sure you want to delete this weight entry?</string>
+    <string name="delete_confirm_text">Are you sure you want to delete?</string>
     <string name="no_weights_measured_this_week">No weights measured this week.</string>
     <string name="save">Save</string>
     <string name="stats">Stats</string>
@@ -111,6 +111,7 @@
     <string name="vitamins_for_100_g">Vitamins for 100 g</string>
     <string name="filter1">Week</string>
     <string name="filter2">Month</string>
+    <string name="results">Results</string>
 
 
 </resources>

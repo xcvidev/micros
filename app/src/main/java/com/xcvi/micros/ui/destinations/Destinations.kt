@@ -27,14 +27,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.xcvi.micros.R
 import com.xcvi.micros.ui.core.slidingComposable
-import com.xcvi.micros.ui.destinations.food.add.AddScreen
-import com.xcvi.micros.ui.destinations.food.dashboard.FoodScreen
-import com.xcvi.micros.ui.destinations.food.details.DetailsScreen
-import com.xcvi.micros.ui.destinations.food.meal.MealScreen
-import com.xcvi.micros.ui.destinations.food.scan.ScanScreen
+import com.xcvi.micros.ui.destinations.food.f3.AddScreen
+import com.xcvi.micros.ui.destinations.food.f1.FoodScreen
+import com.xcvi.micros.ui.destinations.food.f1.FoodViewModel
+import com.xcvi.micros.ui.destinations.food.f5.DetailsScreen
+import com.xcvi.micros.ui.destinations.food.f2.MealScreen
+import com.xcvi.micros.ui.destinations.food.f4.ScanScreen
 import com.xcvi.micros.ui.destinations.stats.StatsScreen
 import com.xcvi.micros.ui.destinations.weight.WeightScreen
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -47,15 +49,19 @@ fun Destinations(
         Scaffold(
             bottomBar = { BottomBar(navController) }
         ) { scaffoldPadding ->
+            val foodViewModel: FoodViewModel = koinViewModel() // shared viewModel
             NavHost(
                 modifier = modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars),
+                    .fillMaxSize(),
+                    //.windowInsetsPadding(WindowInsets.systemBars),
                 navController = navController,
                 startDestination = FoodGraph.label
             ) {
                 //main graph
-                composable(FoodGraph.label) {
+                composable(
+                    route = FoodGraph.label,
+                ) { backStackEntry ->
+                   // val date = backStackEntry.arguments?.getInt("date") ?: getToday()
                     FoodScreen(
                         navController = navController,
                         topAppBarTitle = stringResource(R.string.food_log_app_bar_title),
@@ -63,13 +69,14 @@ fun Destinations(
                         macroTitle = stringResource(R.string.macros),
                         mineralTitle = stringResource(R.string.minerals),
                         vitaminTitle = stringResource(R.string.vitamins),
+                        viewModel = foodViewModel,
                     )
                 }
                 composable(WeightGraph.label) {
                     WeightScreen(
                         topAppBarTitle = stringResource(R.string.weight_manager),
                         deleteDialogTitle = stringResource(R.string.delete),
-                        deleteDialogText = stringResource(R.string.are_you_sure_you_want_to_delete_this_weight_entry),
+                        deleteDialogText = stringResource(R.string.delete_confirm_text),
                         noWeightsText = stringResource(R.string.no_weights_measured_this_week),
                         deleteDialogButtonText = stringResource(R.string.delete),
                         saveButtonText = stringResource(R.string.save)
@@ -101,23 +108,25 @@ fun Destinations(
                         macroTitle = stringResource(R.string.macros),
                         aminoTitle = stringResource(R.string.amino_acids),
                         mineralTitle = stringResource(R.string.minerals),
-                        vitaminTitle = stringResource(R.string.vitamins)
+                        vitaminTitle = stringResource(R.string.vitamins),
+                        viewModel = foodViewModel,
                     )
                 }
                 slidingComposable<FoodGraph.Add> {
-                    val promptFieldPlaceholders = listOf(
+                    val placeHolderList = listOf(
                         stringResource(R.string.describe_your_food),
                         stringResource(R.string.try_a_plate_of_pasta_with_tomato_sauce),
                         stringResource(R.string.describe_what_you_ate),
                     )
-                    val placeHolder = remember { promptFieldPlaceholders.random() }
+
+                    val placeHolder = remember { placeHolderList.random() }
                     val args = it.toRoute<FoodGraph.Add>()
                     AddScreen(
+                        resultsLabel = stringResource(R.string.results),
+                        placeHolder = placeHolder,
                         navController = navController,
                         date = args.date,
                         meal = args.meal,
-                        inputFieldPlaceHolder = placeHolder,
-                        scanButtonText = stringResource(R.string.scan_barcode),
                         generatingIndicatorText = stringResource(R.string.generating),
                         proteinLabel = stringResource(R.string.protein),
                         carbsLabel = stringResource(R.string.carbs),

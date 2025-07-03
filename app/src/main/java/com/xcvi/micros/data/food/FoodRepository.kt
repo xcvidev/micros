@@ -1,0 +1,294 @@
+package com.xcvi.micros.data.food
+
+import com.xcvi.micros.data.food.model.MealCard
+import com.xcvi.micros.data.food.model.entity.AminoAcids
+import com.xcvi.micros.data.food.model.entity.Macros
+import com.xcvi.micros.data.food.model.entity.Minerals
+import com.xcvi.micros.data.food.model.entity.Portion
+import com.xcvi.micros.data.food.model.entity.Vitamins
+import com.xcvi.micros.data.food.source.FoodApi
+import com.xcvi.micros.data.food.source.FoodDao
+import com.xcvi.micros.domain.Response
+import com.xcvi.micros.domain.getNow
+import com.xcvi.micros.domain.getToday
+import com.xcvi.micros.domain.roundDecimals
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.random.Random
+
+
+class FoodRepository(
+    private val api: FoodApi,
+    private val dao: FoodDao
+) {
+
+    /**
+     * Portion Details
+     */
+
+    suspend fun getPortion(meal: Int, date: Int, barcode: String, amount: Int): Response<Portion> {
+        try {
+            val exactPortion = withContext(Dispatchers.IO) {
+                dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
+            }
+            if (exactPortion != null) {
+                return Response.Success(exactPortion.scaledTo(amount.toDouble()))
+            }
+            val cachedPortion = withContext(Dispatchers.IO) {
+                dao.getPortion(barcode = barcode)
+            }
+            if (cachedPortion != null) {
+                return Response.Success(cachedPortion.scaledTo(amount.toDouble()))
+            }
+            return Response.Error(Exception("Portion not found"))
+        } catch (e: Exception) {
+            return Response.Error(e)
+        }
+    }
+
+    /**
+     * Search & Generate
+     */
+    suspend fun scan(barcode: String): Response<Unit> {
+        return try {
+            val res = withContext(Dispatchers.IO) {
+                api.scan(barcode)
+            }
+            if (res == null) {
+                Response.Error(Exception("Failed to scan"))
+            } else {
+                withContext(Dispatchers.IO) {
+                    dao.upsertPortion(res)
+                }
+                Response.Success(Unit)
+            }
+        } catch (e: Exception) {
+            Response.Error(e)
+        }
+    }
+
+    suspend fun getRecents(): Response<List<Portion>> {
+        try {
+            val recents = withContext(Dispatchers.IO) {
+                dao.getPortions()
+            }
+            return Response.Success(recents)
+        } catch (e: Exception) {
+            return Response.Error(e)
+        }
+    }
+
+    suspend fun generate(query: String): Response<Portion> {
+        return try {
+            val res = withContext(Dispatchers.IO) {
+                api.generate(query)
+            }
+            if (res == null) {
+                Response.Error(Exception("Failed to generate"))
+            } else {
+                val portion = res.copy(date = -1, meal = -1)
+                withContext(Dispatchers.IO) { dao.upsertPortion(portion) }
+                Response.Success(portion)
+            }
+        } catch (e: Exception) {
+            Response.Error(e)
+        }
+    }
+
+
+    /**
+     * Dashboard
+     */
+    suspend fun updatePortion(portion: Portion, amount: Double): Response<Unit> {
+        return try {
+            if (portion.amountInGrams == amount) {
+                return Response.Success(Unit)
+            }
+            if (amount <= 0.0) {
+                withContext(Dispatchers.IO) { dao.deletePortion(portion) }
+                return Response.Success(Unit)
+            }
+            val updatedPortion =
+                withContext(Dispatchers.Default) { portion.scaledTo(amount).roundDecimals() }
+            withContext(Dispatchers.IO) { dao.upsertPortion(updatedPortion) }
+            Response.Success(Unit)
+        } catch (e: Exception) {
+            Response.Error(e)
+        }
+    }
+
+    suspend fun updatePortion(portions: List<Portion>, name: String): Response<Unit> {
+        return try {
+            if (portions.isEmpty()) {
+                return Response.Success(Unit)
+            }
+            val updatedPortion = withContext(Dispatchers.Default) {
+                portions.summary().roundDecimals()
+            }.copy(
+                barcode = "custom_${name}_${getNow()}",
+                name = name,
+                date = -1,
+                meal = -1,
+                isFavorite = 1
+            )
+
+            println(println("MyLog: " + updatedPortion.name))
+
+            withContext(Dispatchers.IO) { dao.upsertPortion(updatedPortion) }
+            Response.Success(Unit)
+        } catch (e: Exception) {
+            Response.Error(e)
+        }
+    }
+
+    suspend fun getFoodData(date: Int): Response<Pair<Portion, List<MealCard>>> {
+        try {
+            val portions = withContext(Dispatchers.IO) {
+                dao.getPortions(date = date)
+            }
+
+            val meals = withContext(Dispatchers.Default) {
+                portions.map { it.roundDecimals() }.groupBy { it.meal }
+            }
+            val summary = withContext(Dispatchers.Default) {
+                getSummary(date).roundDecimals()
+            }
+
+            val mealCards = withContext(Dispatchers.Default) {
+                (1..6).map { mealNumber ->
+                    val mealPortions = meals[mealNumber].orEmpty()
+                    MealCard(
+                        meal = mealNumber,
+                        summary = mealPortions.summary(date).roundDecimals(),
+                        portions = mealPortions
+                    )
+                }
+            }
+            return Response.Success(Pair(summary, mealCards))
+        } catch (e: Exception) {
+            return Response.Error(e)
+        }
+    }
+
+
+    /**
+     * Utils
+     */
+    private suspend fun getSummary(date: Int): Portion = withContext(Dispatchers.Default) {
+        val macroDeferred = async { dao.sumMacros(date) }
+        val mineralDeferred = async { dao.sumMinerals(date) }
+        val vitaminDeferred = async { dao.sumVitamins(date) }
+        val aminoDeferred = async { dao.sumAminoacids(date) }
+
+        val macros = macroDeferred.await() ?: Macros()
+        val minerals = mineralDeferred.await() ?: Minerals()
+        val vitamins = vitaminDeferred.await() ?: Vitamins()
+        val aminoAcids = aminoDeferred.await() ?: AminoAcids()
+
+        Portion(
+            date = date,
+            meal = -1,
+            name = "Daily Total",
+            brand = "",
+            barcode = "summary_$date",
+            novaGroup = 0.0,
+            isFavorite = 0,
+            amountInGrams = 0.0,
+            ingredients = "",
+            macros = macros,
+            minerals = minerals,
+            vitamins = vitamins,
+            aminoAcids = aminoAcids
+        )
+    }
+
+    suspend fun insertPortion() {
+        (1..10).forEach {
+            val protein = Random.nextInt(30, 40)
+            val carbohydrates = Random.nextInt(50, 100)
+            val fats = Random.nextInt(0, 5)
+            val portion = Portion(
+                date = getToday() - (it % 3),
+                meal = Random.nextInt(1, 6),
+                name = "Food $it",
+                barcode = "barcode $it",
+                amountInGrams = Random.nextDouble(50.0, 200.0).roundDecimals(),
+                macros = Macros(
+                    calories = (protein * 4.0 + carbohydrates * 4.0 + fats * 9.0).roundDecimals(),
+                    protein = protein * 1.0,
+                    carbohydrates = carbohydrates * 1.0,
+                    fats = fats * 1.0
+                ),
+                minerals = Minerals(calcium = 150.0),
+                vitamins = Vitamins(vitaminA = 100.0),
+                aminoAcids = AminoAcids(leucine = protein * 0.1),
+            )
+
+            dao.upsertPortion(portion)
+        }
+    }
+
+}
+
+
+/*
+
+private suspend fun getSummary(date: Int, meal: Int): Portion =
+        withContext(Dispatchers.Default) {
+            val macroDeferred = async { dao.sumMacros(date = date, meal = meal) }
+            val mineralDeferred = async { dao.sumMinerals(date = date, meal = meal) }
+            val vitaminDeferred = async { dao.sumVitamins(date = date, meal = meal) }
+            val aminoDeferred = async { dao.sumAminoacids(date = date, meal = meal) }
+
+            val macros = macroDeferred.await() ?: Macros()
+            val minerals = mineralDeferred.await() ?: Minerals()
+            val vitamins = vitaminDeferred.await() ?: Vitamins()
+            val aminoAcids = aminoDeferred.await() ?: AminoAcids()
+
+            Portion(
+                date = date,
+                meal = meal,
+                name = "Daily Total",
+                brand = "",
+                barcode = "summary_$date",
+                novaGroup = 0.0,
+                isFavorite = 0,
+                amountInGrams = 0.0,
+                ingredients = "",
+                macros = macros.roundDecimals(),
+                minerals = minerals.roundDecimals(),
+                vitamins = vitamins.roundDecimals(),
+                aminoAcids = aminoAcids.roundDecimals()
+            )
+        }
+
+    suspend fun insertPortion() {
+        (1..10).forEach {
+            val protein = Random.nextInt(30,40)
+            val carbohydrates = Random.nextInt(50,100)
+            val fats = Random.nextInt(0,5)
+            val portion = Portion(
+                date = getToday() - (it % 3),
+                meal = Random.nextInt(1, 6),
+                name = "Food $it",
+                barcode = "barcode $it",
+                amountInGrams = Random.nextDouble(50.0, 200.0).roundDecimals(),
+                macros = Macros(
+                    calories = (protein * 4.0 + carbohydrates * 4.0 + fats * 9.0).roundDecimals(),
+                    protein = protein * 1.0,
+                    carbohydrates = carbohydrates* 1.0,
+                    fats = fats* 1.0
+                ),
+                minerals = Minerals(calcium = 150.0),
+                vitamins = Vitamins(vitaminA = 100.0),
+                aminoAcids = AminoAcids(leucine = protein * 0.1),
+            )
+
+            dao.upsertPortion(portion)
+
+        }
+    }
+ */

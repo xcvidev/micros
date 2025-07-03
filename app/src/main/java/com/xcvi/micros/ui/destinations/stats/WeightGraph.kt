@@ -1,6 +1,5 @@
 package com.xcvi.micros.ui.destinations.stats
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -11,18 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
-import com.xcvi.micros.domain.Weight
-import com.xcvi.micros.domain.WeightStats
+import com.xcvi.micros.data.weight.model.WeightStats
 import com.xcvi.micros.domain.monthFormatted
 import com.xcvi.micros.domain.roundDecimals
-import com.xcvi.micros.domain.weightAvg
 import com.xcvi.micros.ui.core.DotGraph
 import com.xcvi.micros.ui.destinations.weight.SummaryItem
 import kotlinx.datetime.LocalDate

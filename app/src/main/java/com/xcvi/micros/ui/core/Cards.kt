@@ -67,7 +67,7 @@ fun StreamingTextCard(
     ) {
         Column(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(top = 12.dp, start = 18.dp, end = 18.dp, bottom = 24.dp)
                 .fillMaxWidth()
         ) {
             Text(

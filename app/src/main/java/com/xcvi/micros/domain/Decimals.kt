@@ -19,7 +19,7 @@ fun List<Double?>.normalize(scale: Double = 0.0): List<Double?> {
 
 fun Double.nextAmount(): Double {
     return try{
-        if (this <= 0.0) {
+        if (this < 0.0) {
             0.0
         } else {
             val rounded = this.roundToInt()

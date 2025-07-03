@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.xcvi.micros.data.entity.Portion
+import com.xcvi.micros.data.food.model.entity.Portion
 import com.xcvi.micros.domain.monthFormatted
 import com.xcvi.micros.ui.core.BarGraph
 import com.xcvi.micros.ui.core.DotGraph

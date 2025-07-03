@@ -19,8 +19,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xcvi.micros.R
-import com.xcvi.micros.data.entity.Portion
-import com.xcvi.micros.domain.WeightStats
+import com.xcvi.micros.data.food.model.entity.Portion
+import com.xcvi.micros.data.weight.model.WeightStats
 import com.xcvi.micros.ui.core.DropDownChip
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.destinations.food.FoodSummary
@@ -86,8 +86,8 @@ fun StatsScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 FoodGraph(
-                    data = if (selectedFilter == "Week") state.foodsByWeek else state.foodsByMonth,
-                    showDate = selectedFilter == "Week",
+                    data = if (selectedFilter == weeksFilter) state.foodsByWeek else state.foodsByMonth,
+                    showDate = selectedFilter == weeksFilter,
                     noDataText = noFoodDataText,
                     onScroll = {
                         foods = it
@@ -110,8 +110,8 @@ fun StatsScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 WeightGraph(
-                    data = if (selectedFilter == "Week") state.weightsByWeek else state.weightsByMonth,
-                    showDate = selectedFilter == "Week",
+                    data = if (selectedFilter == weeksFilter) state.weightsByWeek else state.weightsByMonth,
+                    showDate = selectedFilter == weeksFilter,
                     noDataText = noWeightDataText,
                     onScroll = { weights = it }
                 )

@@ -40,12 +40,12 @@ fun StreamingText(
     fullText: String,
     modifier: Modifier = Modifier,
     charDelayMillis: Long = 30L,
-    onFinished: (() -> Unit)? = null,
     color: Color = Color.Unspecified,
     style: TextStyle = TextStyle.Default,
     fontSize: TextUnit = TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
+    onFinished: (() -> Unit)? = null,
 ) {
     var visibleText by remember { mutableStateOf("") }
     val lines = fullText.split("\n").size
@@ -68,6 +68,7 @@ fun StreamingText(
             fontSize = fontSize,
             fontWeight = fontWeight,
             textAlign = textAlign,
+            maxLines = lines,
             minLines = lines,
             overflow = TextOverflow.Ellipsis
         )

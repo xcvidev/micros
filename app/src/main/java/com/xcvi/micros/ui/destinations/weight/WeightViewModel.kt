@@ -1,7 +1,7 @@
 package com.xcvi.micros.ui.destinations.weight
 
-import com.xcvi.micros.domain.Weight
-import com.xcvi.micros.domain.WeightRepository
+import com.xcvi.micros.data.weight.WeightRepository
+import com.xcvi.micros.data.weight.model.Weight
 import com.xcvi.micros.domain.getEndOfWeek
 import com.xcvi.micros.domain.getEpochDate
 import com.xcvi.micros.domain.getStartOfWeek
@@ -22,17 +22,7 @@ class WeightViewModel(
     )
 
     fun getData(date: Int) {
-        updateData {
-            val weights = repository.weights.filter {
-                it.timestamp.getEpochDate() >= date.getStartOfWeek() &&
-                        it.timestamp.getEpochDate() <= date.getEndOfWeek()
-            }.sortedByDescending { it.timestamp }
-            copy(
-                weights = weights,
-                numberPickerValue = weights.lastOrNull()?.value ?: repository.weights.maxOf { it.value }, // needed to avoid zero
-                initialValue = weights.lastOrNull()?.value ?: repository.weights.maxOf { it.value },
-            )
-        }
+
     }
 
     fun setNumberPickerValue(value: Double) {
@@ -55,6 +45,7 @@ class WeightViewModel(
     }
 
     fun save() {
+        /*
         repository.weights.add(
             Weight(
                 value = state.numberPickerValue,
@@ -71,11 +62,13 @@ class WeightViewModel(
                 weights = weights
             )
         }
+
+         */
     }
 
     fun delete() {
         if (state.deleteWeight == null) return
-        repository.weights.remove(state.deleteWeight)
+        //repository.weights.remove(state.deleteWeight)
         getData(state.currentDate)
     }
 }

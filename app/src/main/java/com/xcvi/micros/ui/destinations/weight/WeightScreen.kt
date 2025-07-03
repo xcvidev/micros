@@ -40,7 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.xcvi.micros.domain.Weight
+import com.xcvi.micros.data.weight.model.Weight
 import com.xcvi.micros.domain.formatEpochDate
 import com.xcvi.micros.domain.formatTimestamp
 import com.xcvi.micros.domain.getEndOfWeek
@@ -205,9 +205,9 @@ fun WeightSummary(
 ) {
     if (list.isEmpty()) return
 
-    val min = list.minOf { it.value }
-    val max = list.maxOf { it.value }
-    val avg = list.sumOf { it.value } / list.size
+    val min = list.minOf { it.weight }.roundDecimals()
+    val max = list.maxOf { it.weight }.roundDecimals()
+    val avg = (list.sumOf { it.weight } / list.size).roundDecimals()
     val date = list.first().timestamp.getEpochDate()
     val start = date.getStartOfWeek().formatEpochDate(short = false)
     val end = date.getEndOfWeek().formatEpochDate(short = false)
@@ -245,7 +245,7 @@ fun WeightSummary(
         // Weight entries
         list.forEach { weight ->
             WeightEntry(
-                weight = weight.value.toString(),
+                weight = weight.weight.roundDecimals().toString(),
                 date = weight.timestamp.formatTimestamp(short = true, showDayOfWeek = true),
                 onClick = { onClick(weight) })
         }

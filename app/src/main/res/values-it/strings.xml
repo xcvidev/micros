@@ -75,7 +75,7 @@
     <string name="vitamins">Vitamine</string>
     <string name="weight_manager">Gestione del peso</string>
     <string name="delete">Elimina</string>
-    <string name="are_you_sure_you_want_to_delete_this_weight_entry">Sei sicuro di voler eliminare questa registrazione del peso?</string>
+    <string name="delete_confirm_text">Sei sicuro di voler eliminare?</string>
     <string name="no_weights_measured_this_week">Nessun peso registrato questa settimana.</string>
     <string name="save">Salva</string>
     <string name="stats">Statistiche</string>
@@ -111,4 +111,5 @@
     <string name="vitamins_for_100_g">Vitamine per 100 g</string>
     <string name="filter1">Settimane</string>
     <string name="filter2">Mesi</string>
+    <string name="results">Risultati</string>
 </resources>

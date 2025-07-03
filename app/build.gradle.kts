@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.konan.properties.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,6 +20,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProperties = Properties().apply {
+            val localFile = rootProject.file("local.properties")
+            if (localFile.exists()) {
+                load(localFile.inputStream())
+            }
+        }
+
+        val openAiKey = localProperties.getProperty("OPENAI_API_KEY")
+            ?: throw GradleException("OPENAI_API_KEY not found in local.properties")
+
+        buildConfigField("String", "OPENAI_API_KEY", "\"$openAiKey\"")
     }
 
     buildTypes {
@@ -38,6 +51,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
