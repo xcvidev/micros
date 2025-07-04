@@ -5,7 +5,7 @@ import com.xcvi.micros.R
 
 sealed interface Response<out D> {
     data class Success<out D>(val data: D) : Response<D>
-    data class Error(val error: Throwable) : Response<Nothing>
+    data class Error(val error: Failure) : Response<Nothing>
 
     val isSuccess: Boolean
         get() = this is Success
@@ -36,7 +36,7 @@ sealed class Failure: Throwable() {
     }
 }
 
-fun Throwable.getLocalizedText(context: Context): String {
+fun Failure.getLocalizedText(context: Context): String {
     return when (this) {
         is Failure.Network -> context.getString(R.string.network_error)
         is Failure.EmptyResult -> context.getString(R.string.empty_result)

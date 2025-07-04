@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 
-
 class FoodRepository(
     private val dao: FoodDao,
     private val api: FoodApi,
@@ -21,6 +20,24 @@ class FoodRepository(
     /**
      * SEARCH
      */
+    suspend fun generate(query: String): Response<Portion> {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                api.generate(query)
+            }
+            if (res != null) {
+                withContext(Dispatchers.IO) {
+                    upsert(listOf(res))
+                }
+                return Response.Success(res)
+            } else {
+                return Response.Error(Failure.EmptyResult)
+            }
+        } catch (e: Exception) {
+            return Response.Error(Failure.Network)
+        }
+    }
+
     suspend fun searchLocal(searchTerm: String): Response<List<Portion>> {
         try {
             val query = withContext(Dispatchers.Default) {
@@ -29,10 +46,14 @@ class FoodRepository(
             val products = withContext(Dispatchers.IO) {
                 dao.search(query)
             }
-            return Response.Success(products)
+            return if (products.isNotEmpty()) {
+                Response.Success(products)
+            } else{
+                Response.Error(Failure.EmptyResult)
+            }
         } catch (e: Exception) {
             println("MyLog: Error ${e.message}")
-            return Response.Error(e)
+            return Response.Error(Failure.Database)
         }
     }
 
@@ -44,20 +65,23 @@ class FoodRepository(
             when (res) {
                 is Response.Error -> return Response.Error(res.error)
                 is Response.Success -> {
-                    withContext(Dispatchers.IO) {
-                        res.data.forEach { portion ->
-                            upsert(listOf(portion))
+                    if (res.data.isNotEmpty()){
+                        withContext(Dispatchers.IO) {
+                            res.data.forEach { portion ->
+                                upsert(listOf(portion))
+                            }
                         }
+                        return Response.Success(res.data)
+                    } else {
+                        return Response.Error(Failure.EmptyResult)
                     }
-                    return Response.Success(res.data)
                 }
             }
         } catch (e: Exception) {
             println("MyLog: Error ${e.message}")
-            Response.Error(e)
+            Response.Error(Failure.Network)
         }
     }
-
 
 
     suspend fun scan(barcode: String): Response<Unit> {
@@ -75,7 +99,7 @@ class FoodRepository(
                 }
             }
         } catch (e: Exception) {
-            return Response.Error(e)
+            return Response.Error(Failure.Network)
         }
     }
 
@@ -89,7 +113,7 @@ class FoodRepository(
                 Response.Success(res)
             }
         } catch (e: Exception) {
-            return Response.Error(e)
+            return Response.Error(Failure.Database)
         }
     }
 
@@ -115,7 +139,7 @@ class FoodRepository(
             return Response.Error(Failure.Unknown)
         } catch (e: Exception) {
             println("MyLog: Error ${e.message}")
-            return Response.Error(e)
+            return Response.Error(Failure.Database)
         }
     }
 
@@ -130,7 +154,7 @@ class FoodRepository(
             }
             Response.Success(Unit)
         } catch (e: Exception) {
-            Response.Error(e)
+            Response.Error(Failure.Database)
         }
     }
 
@@ -141,7 +165,7 @@ class FoodRepository(
             withContext(Dispatchers.IO) { upsert(listOf(updatedPortion)) }
             Response.Success(Unit)
         } catch (e: Exception) {
-            Response.Error(e)
+            Response.Error(Failure.Database)
         }
     }
 
@@ -163,7 +187,7 @@ class FoodRepository(
             withContext(Dispatchers.IO) { upsert(listOf(updatedPortion)) }
             Response.Success(Unit)
         } catch (e: Exception) {
-            Response.Error(e)
+            Response.Error(Failure.Database)
         }
     }
 
@@ -192,7 +216,7 @@ class FoodRepository(
             }
             return Response.Success(Pair(summary, mealCards))
         } catch (e: Exception) {
-            return Response.Error(e)
+            return Response.Error(Failure.Database)
         }
     }
 

@@ -61,10 +61,9 @@ class FoodApi(
                 return portion
             } catch (e: Exception) {
                 println("Failed to parse Portion: ${e.message}")
-                return null
+                throw e
             }
         }
-
     }
 
     suspend fun enhance(portion: Portion): Portion? {
@@ -213,7 +212,7 @@ class FoodApi(
             }
             return Response.Success(products)
         } catch (e: Exception) {
-            return Response.Error(e)
+            return Response.Error(Failure.Network)
         }
     }
 }

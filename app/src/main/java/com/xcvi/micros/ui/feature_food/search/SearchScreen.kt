@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -25,15 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.R
 import com.xcvi.micros.data.food.model.entity.Portion
 import com.xcvi.micros.data.food.model.entity.displayName
+import com.xcvi.micros.domain.Failure
 import com.xcvi.micros.domain.getLocalizedText
 import com.xcvi.micros.ui.FoodGraph
 import com.xcvi.micros.ui.core.OnNavigation
+import com.xcvi.micros.ui.core.StreamingText
 import com.xcvi.micros.ui.core.StreamingTextCard
+import com.xcvi.micros.ui.core.rememberShakeOffset
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -58,6 +60,12 @@ fun SearchScreen(
     }
 
     val context = LocalContext.current
+    var hasStreamed by remember { mutableStateOf(false) }
+    var shakeTrigger by remember { mutableStateOf(false) }
+    val shakeOffset = rememberShakeOffset(shakeTrigger) {
+        shakeTrigger = false // reset after animation
+    }
+
     val goToItem = { portion: Portion ->
         navController.navigate(
             FoodGraph.Details(
@@ -71,39 +79,83 @@ fun SearchScreen(
 
     var query by remember { mutableStateOf("") }
     LazyColumn(
-        modifier = Modifier.padding(24.dp),
+        modifier = Modifier
+            .padding(24.dp)
+            .offset(x = shakeOffset),
     ) {
         item {
             TextField(
                 value = query,
-                onValueChange = { query = it }
+                onValueChange = {
+                    query = it
+                    viewModel.filter(query)
+                }
             )
-            Button(onClick = { viewModel.search(query) { toast(context, it) } }) {
+            Button(
+                onClick = {
+                    viewModel.find(query) { error ->
+                        if (error == Failure.Network) {
+                            toast(context, error)
+                        }
+                        shakeTrigger = true
+                    }
+                }
+            ) {
                 Text(text = "Search")
             }
         }
 
-        item {
-            Text(text = "Recently Added")
+        val isStreaming = viewModel.state.isStreaming
+        val isGenerating = viewModel.state.isGenerating
+        val generated = viewModel.state.generated
+        if (isGenerating) {
+            item { StreamingText(generatingIndicatorText) }
         }
-        items(viewModel.state.filtered){
-            PortionItem(it) { goToItem(it) }
+        if (isStreaming || generated != null) {
+            item {
+                Text(generatedLabel)
+
+                GeneratedItem(
+                    proteinLabel = proteinLabel,
+                    carbsLabel = carbsLabel,
+                    fatsLabel = fatsLabel,
+                    portion = generated ?: Portion(),
+                    onClick = {
+                        if (generated != null) {
+                            goToItem(generated)
+                        }
+                    }
+                ) {
+                    hasStreamed = true
+                }
+            }
+        }
+
+        if (viewModel.state.recents.isNotEmpty()) {
+            item {
+                Text(text = "Recently Added")
+                viewModel.state.recents.forEach {
+                    PortionItem(it) { goToItem(it) }
+                }
+            }
         }
 
 
-        item {
-            Text(text = "Search Results")
-        }
-        items(viewModel.state.searchResults){
-            PortionItem(it) { goToItem(it) }
+        if (viewModel.state.searchResults.isNotEmpty()) {
+            item {
+                Text(text = "Search Results")
+                viewModel.state.searchResults.forEach {
+                    PortionItem(it) { goToItem(it) }
+                }
+            }
         }
     }
 
 
 }
 
-fun toast(context: Context, throwable: Throwable) {
-    Toast.makeText(context, throwable.getLocalizedText(context), Toast.LENGTH_LONG).show()
+fun toast(context: Context, failure: Failure) {
+    Toast.makeText(context, failure.getLocalizedText(context), Toast.LENGTH_LONG).show()
 }
 
 /*

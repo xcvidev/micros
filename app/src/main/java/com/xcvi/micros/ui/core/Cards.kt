@@ -37,28 +37,36 @@ fun StreamingTextCard(
     onClick: () -> Unit,
     onFinished: (() -> Unit)? = null,
 ) {
-    var visibleHeadline by remember { mutableStateOf("") }
-    var visibleSubhead by remember { mutableStateOf("") }
-    var visibleBody by remember { mutableStateOf("") }
+    var visibleHeadline by remember(title) { mutableStateOf("") }
+    var visibleSubhead by remember(subtitle) { mutableStateOf("") }
+    var visibleBody by remember(body) { mutableStateOf("") }
+    var hasAnimated by remember(title + subtitle + body) { mutableStateOf(false) }
 
-    LaunchedEffect(title, subtitle, body) {
-        visibleHeadline = ""
-        for (i in title.indices) {
-            visibleHeadline += title[i]
-            delay(charDelayMillis)
+    LaunchedEffect(hasAnimated) {
+        if (!hasAnimated) {
+            visibleHeadline = ""
+            for (i in title.indices) {
+                visibleHeadline += title[i]
+                delay(charDelayMillis)
+            }
+
+            visibleSubhead = ""
+            for (i in subtitle.indices) {
+                visibleSubhead += subtitle[i]
+                delay(charDelayMillis)
+            }
+
+            visibleBody = ""
+            for (i in body.indices) {
+                visibleBody += body[i]
+                delay(charDelayMillis)
+            }
+
+            hasAnimated = true
+            onFinished?.invoke()
         }
-        visibleSubhead = ""
-        for (i in subtitle.indices) {
-            visibleSubhead += subtitle[i]
-            delay(charDelayMillis)
-        }
-        visibleBody = ""
-        for (i in body.indices) {
-            visibleBody += body[i]
-            delay(charDelayMillis)
-        }
-        onFinished?.invoke()
     }
+
 
     OutlinedCard(
         modifier = modifier,
@@ -159,4 +167,6 @@ fun M3CardWithMedia(
         }
     }
 }
+
+
 

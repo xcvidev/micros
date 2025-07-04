@@ -75,6 +75,61 @@ fun StreamingText(
     }
 }
 
+/*
+@Composable
+fun StreamingTextCard(
+    title: String,
+    subtitle: String,
+    body: String,
+    modifier: Modifier = Modifier,
+    charDelayMillis: Long = 30L,
+    onClick: () -> Unit,
+    onFinished: (() -> Unit)? = null,
+) {
+    var visibleTitle by remember(title) { mutableStateOf("") }
+    var visibleSubtitle by remember(subtitle) { mutableStateOf("") }
+    var visibleBody by remember(body) { mutableStateOf("") }
+    var hasAnimated by remember(title + subtitle + body) { mutableStateOf(false) }
+
+    LaunchedEffect(hasAnimated) {
+        if (!hasAnimated) {
+            visibleTitle = streamText(title, charDelayMillis) { visibleTitle = it }
+            visibleSubtitle = streamText(subtitle, charDelayMillis) { visibleSubtitle = it }
+            visibleBody = streamText(body, charDelayMillis) { visibleBody = it }
+            hasAnimated = true
+            onFinished?.invoke()
+        }
+    }
+
+    Card(
+        modifier = modifier.clickable { onClick() }
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = visibleTitle, style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = visibleSubtitle, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = visibleBody, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+suspend fun streamText(
+    text: String,
+    delayMillis: Long,
+    onUpdate: (String) -> Unit
+): String {
+    var visible = ""
+    for (char in text) {
+        visible += char
+        onUpdate(visible)
+        delay(delayMillis)
+    }
+    return visible
+}
+
+ */
+
 @Composable
 fun FadingText(
     text: String,
