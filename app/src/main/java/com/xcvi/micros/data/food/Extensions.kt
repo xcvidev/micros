@@ -90,7 +90,7 @@ fun Portion.scaledTo(newAmount: Double): Portion {
     )
 }
 
-fun ProductDTO.toPortionCache(): Portion {
+fun ProductDTO.toPortionCache(): Portion? {
     fun getValue(main: Double, fallback: Double): Double {
         return if (main >= 0) main else fallback
     }
@@ -98,7 +98,7 @@ fun ProductDTO.toPortionCache(): Portion {
     val n = nutriments
     val e = nutriments_estimated
 
-    return Portion(
+    val portion = Portion(
         date = -1,
         meal = -1,
         amountInGrams = 100.0,
@@ -149,6 +149,12 @@ fun ProductDTO.toPortionCache(): Portion {
         ),
         aminoAcids = AminoAcids() // optional; fill if available
     )
+
+    return if(portion.macros.isEmpty()) {
+        null
+    } else {
+        portion
+    }
 }
 
 

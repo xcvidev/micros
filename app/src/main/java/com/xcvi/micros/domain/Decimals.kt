@@ -1,6 +1,5 @@
 package com.xcvi.micros.domain
 
-import android.health.connect.datatypes.units.Percentage
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -16,8 +15,33 @@ fun List<Double?>.normalize(scale: Double = 0.0): List<Double?> {
         }
     }
 }
-
 fun Double.nextAmount(): Double {
+    return try {
+        if (this < 0.0) {
+            0.0
+        } else {
+            val rounded = this.roundToInt()
+            ((rounded / 10) + 1) * 10.0
+        }
+    } catch (e: Exception) {
+        0.0
+    }
+}
+
+fun Double.previousAmount(): Double {
+    return try {
+        if (this <= 10) {
+            0.0
+        } else {
+            val rounded = this.roundToInt()
+            ((rounded - 1) / 10) * 10.0
+        }
+    } catch (e: Exception) {
+        0.0
+    }
+}
+
+fun Double.nextAmount50(): Double {
     return try{
         if (this < 0.0) {
             0.0
@@ -30,7 +54,7 @@ fun Double.nextAmount(): Double {
     }
 }
 
-fun Double.previousAmount(): Double {
+fun Double.previousAmount50(): Double {
     return try{
         if (this <= 50) {
             0.0

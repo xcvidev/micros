@@ -1,21 +1,16 @@
 package com.xcvi.micros.domain
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
-import kotlinx.datetime.format
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
-import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle

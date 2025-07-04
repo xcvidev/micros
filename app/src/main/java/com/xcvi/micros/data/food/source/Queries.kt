@@ -11,11 +11,12 @@ const val getRecents =
         (barcode, date) IN (
             SELECT barcode, MAX(date)
             FROM portions
+            WHERE date > 0
             GROUP BY barcode
+            LIMIT 30
         )
     )
     ORDER BY date
-    LIMIT 30;
 """
 
 const val sumMacrosByDate =

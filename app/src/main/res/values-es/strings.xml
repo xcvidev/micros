@@ -111,6 +111,14 @@
     <string name="vitamins_for_100_g">Vitaminas por 100 g</string>
     <string name="filter1">Semana</string>
     <string name="filter2">Mes</string>
-    <string name="results">Resultados</string>
+    <string name="results">Resultados de búsqueda</string>
+    <string name="generated">Resultado de IA</string>
+
+    <string name="network_error">Error de red. Por favor, verifica tu conexión a internet.</string>
+    <string name="empty_result">No se encontraron resultados para tu búsqueda.</string>
+    <string name="invalid_input">Entrada no válida proporcionada.</string>
+    <string name="database_error">Ocurrió un error en la base de datos. Por favor, inténtalo más tarde.</string>
+    <string name="authentication_error">Error de autenticación. Por favor, inicia sesión nuevamente.</string>
+    <string name="unknown_error">Ocurrió un error desconocido. Por favor, inténtalo de nuevo.</string>
 
 </resources>

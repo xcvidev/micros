@@ -111,7 +111,14 @@
     <string name="vitamins_for_100_g">Vitamins for 100 g</string>
     <string name="filter1">Week</string>
     <string name="filter2">Month</string>
-    <string name="results">Results</string>
+    <string name="results">Search results</string>
+    <string name="generated">AI result</string>
 
+    <string name="network_error">Network error. Please check your internet connection.</string>
+    <string name="empty_result">No results found for your search.</string>
+    <string name="invalid_input">Invalid input provided.</string>
+    <string name="database_error">A database error occurred. Please try again later.</string>
+    <string name="authentication_error">Authentication failed. Please log in again.</string>
+    <string name="unknown_error">An unknown error occurred. Please try again.</string>
 
 </resources>

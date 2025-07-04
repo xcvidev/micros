@@ -3,7 +3,9 @@ package com.xcvi.micros.data.food.source
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Upsert
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
@@ -40,12 +42,6 @@ interface FoodDao {
     @Query(sumAminoacidsByDateAndMeal)
     suspend fun sumAminoacids(date: Int, meal: Int): AminoAcids?
 
-    /**
-     * Add/Edit
-     */
-    @Upsert
-    suspend fun upsertPortion(portion: Portion)
-
     @Delete
     suspend fun deletePortion(portion: Portion)
 
@@ -53,6 +49,9 @@ interface FoodDao {
     /**
      * Get
      */
+    @RawQuery
+    suspend fun search(query: SupportSQLiteQuery): List<Portion>
+
     @Query(getRecents)
     suspend fun getPortions(): List<Portion>
 

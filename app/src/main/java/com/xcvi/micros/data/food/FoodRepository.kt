@@ -1,34 +1,102 @@
 package com.xcvi.micros.data.food
 
 import com.xcvi.micros.data.food.model.MealCard
-import com.xcvi.micros.data.food.model.entity.AminoAcids
-import com.xcvi.micros.data.food.model.entity.Macros
-import com.xcvi.micros.data.food.model.entity.Minerals
 import com.xcvi.micros.data.food.model.entity.Portion
-import com.xcvi.micros.data.food.model.entity.Vitamins
 import com.xcvi.micros.data.food.source.FoodApi
 import com.xcvi.micros.data.food.source.FoodDao
+import com.xcvi.micros.domain.Failure
 import com.xcvi.micros.domain.Response
 import com.xcvi.micros.domain.getNow
-import com.xcvi.micros.domain.getToday
-import com.xcvi.micros.domain.roundDecimals
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
+
 
 
 class FoodRepository(
+    private val dao: FoodDao,
     private val api: FoodApi,
-    private val dao: FoodDao
+    private val upsert: suspend (List<Portion>) -> Unit
 ) {
+
+    /**
+     * SEARCH
+     */
+    suspend fun searchLocal(searchTerm: String): Response<List<Portion>> {
+        try {
+            val query = withContext(Dispatchers.Default) {
+                buildMultiWordQuery(searchTerm, LIMIT, OFFSET)
+            }
+            val products = withContext(Dispatchers.IO) {
+                dao.search(query)
+            }
+            return Response.Success(products)
+        } catch (e: Exception) {
+            println("MyLog: Error ${e.message}")
+            return Response.Error(e)
+        }
+    }
+
+    suspend fun searchRemote(description: String): Response<List<Portion>> {
+        return try {
+            val res = withContext(Dispatchers.IO) {
+                api.search(query = description, pageSize = PAGE_SIZE, page = PAGE)
+            }
+            when (res) {
+                is Response.Error -> return Response.Error(res.error)
+                is Response.Success -> {
+                    withContext(Dispatchers.IO) {
+                        res.data.forEach { portion ->
+                            upsert(listOf(portion))
+                        }
+                    }
+                    return Response.Success(res.data)
+                }
+            }
+        } catch (e: Exception) {
+            println("MyLog: Error ${e.message}")
+            Response.Error(e)
+        }
+    }
+
+
+
+    suspend fun scan(barcode: String): Response<Unit> {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                api.scan(barcode)
+            }
+            return when (res) {
+                is Response.Error -> Response.Error(res.error)
+                is Response.Success -> {
+                    withContext(Dispatchers.IO) {
+                        upsert(listOf(res.data))
+                    }
+                    Response.Success(Unit)
+                }
+            }
+        } catch (e: Exception) {
+            return Response.Error(e)
+        }
+    }
+
+    suspend fun getRecents(): Response<List<Portion>> {
+        try {
+            val recents = withContext(Dispatchers.IO) {
+                dao.getPortions()
+            }
+            return withContext(Dispatchers.IO) {
+                val res = recents.distinctBy { it.barcode }
+                Response.Success(res)
+            }
+        } catch (e: Exception) {
+            return Response.Error(e)
+        }
+    }
+
 
     /**
      * Portion Details
      */
-
     suspend fun getPortion(meal: Int, date: Int, barcode: String, amount: Int): Response<Portion> {
         try {
             val exactPortion = withContext(Dispatchers.IO) {
@@ -41,63 +109,13 @@ class FoodRepository(
                 dao.getPortion(barcode = barcode)
             }
             if (cachedPortion != null) {
-                return Response.Success(cachedPortion.scaledTo(amount.toDouble()))
+                val res = cachedPortion.scaledTo(amount.toDouble()).copy(date = date, meal = meal)
+                return Response.Success(res)
             }
-            return Response.Error(Exception("Portion not found"))
+            return Response.Error(Failure.Unknown)
         } catch (e: Exception) {
+            println("MyLog: Error ${e.message}")
             return Response.Error(e)
-        }
-    }
-
-    /**
-     * Search & Generate
-     */
-    suspend fun scan(barcode: String): Response<Unit> {
-        return try {
-            val res = withContext(Dispatchers.IO) {
-                api.scan(barcode)
-            }
-            if (res == null) {
-                Response.Error(Exception("Failed to scan"))
-            } else {
-                withContext(Dispatchers.IO) {
-                    dao.upsertPortion(res)
-                }
-                Response.Success(Unit)
-            }
-        } catch (e: Exception) {
-            Response.Error(e)
-        }
-    }
-
-    suspend fun getRecents(): Response<List<Portion>> {
-        try {
-            val recents = withContext(Dispatchers.IO) {
-                dao.getPortions()
-            }
-            return withContext(Dispatchers.IO){
-                val res = recents.distinctBy { it.barcode }
-                Response.Success(res)
-            }
-        } catch (e: Exception) {
-            return Response.Error(e)
-        }
-    }
-
-    suspend fun generate(query: String): Response<Portion> {
-        return try {
-            val res = withContext(Dispatchers.IO) {
-                api.generate(query)
-            }
-            if (res == null) {
-                Response.Error(Exception("Failed to generate"))
-            } else {
-                val portion = res.copy(date = -1, meal = -1)
-                withContext(Dispatchers.IO) { dao.upsertPortion(portion) }
-                Response.Success(portion)
-            }
-        } catch (e: Exception) {
-            Response.Error(e)
         }
     }
 
@@ -105,13 +123,13 @@ class FoodRepository(
     /**
      * Dashboard
      */
-    suspend fun delete(portion: Portion): Response<Unit>{
-        return try{
-            withContext(Dispatchers.IO){
+    suspend fun delete(portion: Portion): Response<Unit> {
+        return try {
+            withContext(Dispatchers.IO) {
                 dao.deletePortion(portion)
             }
             Response.Success(Unit)
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Response.Error(e)
         }
     }
@@ -120,7 +138,7 @@ class FoodRepository(
         return try {
             val updatedPortion =
                 withContext(Dispatchers.Default) { portion.scaledTo(amount).roundDecimals() }
-            withContext(Dispatchers.IO) { dao.upsertPortion(updatedPortion) }
+            withContext(Dispatchers.IO) { upsert(listOf(updatedPortion)) }
             Response.Success(Unit)
         } catch (e: Exception) {
             Response.Error(e)
@@ -139,12 +157,10 @@ class FoodRepository(
                 name = name,
                 date = -1,
                 meal = -1,
-                isFavorite = 1
+                isFavorite = 1,
+                amountInGrams = 1.0
             )
-
-            println(println("MyLog: " + updatedPortion.name))
-
-            withContext(Dispatchers.IO) { dao.upsertPortion(updatedPortion) }
+            withContext(Dispatchers.IO) { upsert(listOf(updatedPortion)) }
             Response.Success(Unit)
         } catch (e: Exception) {
             Response.Error(e)
@@ -161,7 +177,7 @@ class FoodRepository(
                 portions.map { it.roundDecimals() }.groupBy { it.meal }
             }
             val summary = withContext(Dispatchers.Default) {
-                getSummary(date).roundDecimals()
+                getSummary(date, dao).roundDecimals()
             }
 
             val mealCards = withContext(Dispatchers.Default) {
@@ -181,67 +197,79 @@ class FoodRepository(
     }
 
 
-    /**
-     * Utils
-     */
-    private suspend fun getSummary(date: Int): Portion = withContext(Dispatchers.Default) {
-        val macroDeferred = async { dao.sumMacros(date) }
-        val mineralDeferred = async { dao.sumMinerals(date) }
-        val vitaminDeferred = async { dao.sumVitamins(date) }
-        val aminoDeferred = async { dao.sumAminoacids(date) }
-
-        val macros = macroDeferred.await() ?: Macros()
-        val minerals = mineralDeferred.await() ?: Minerals()
-        val vitamins = vitaminDeferred.await() ?: Vitamins()
-        val aminoAcids = aminoDeferred.await() ?: AminoAcids()
-
-        Portion(
-            date = date,
-            meal = -1,
-            name = "Daily Total",
-            brand = "",
-            barcode = "summary_$date",
-            novaGroup = 0.0,
-            isFavorite = 0,
-            amountInGrams = 0.0,
-            ingredients = "",
-            macros = macros,
-            minerals = minerals,
-            vitamins = vitamins,
-            aminoAcids = aminoAcids
-        )
-    }
-
-    suspend fun insertPortion() {
-        (1..10).forEach {
-            val protein = Random.nextInt(30, 40)
-            val carbohydrates = Random.nextInt(50, 100)
-            val fats = Random.nextInt(0, 5)
-            val portion = Portion(
-                date = getToday() - (it % 3),
-                meal = Random.nextInt(1, 6),
-                name = "Food $it",
-                barcode = "barcode $it",
-                amountInGrams = Random.nextDouble(50.0, 200.0).roundDecimals(),
-                macros = Macros(
-                    calories = (protein * 4.0 + carbohydrates * 4.0 + fats * 9.0).roundDecimals(),
-                    protein = protein * 1.0,
-                    carbohydrates = carbohydrates * 1.0,
-                    fats = fats * 1.0
-                ),
-                minerals = Minerals(calcium = 150.0),
-                vitamins = Vitamins(vitaminA = 100.0),
-                aminoAcids = AminoAcids(leucine = protein * 0.1),
-            )
-
-            dao.upsertPortion(portion)
-        }
-    }
-
 }
 
 
 /*
+
+suspend fun search(query: String): Response<SearchResult> {
+        if (query.isBlank()) return Response.Error(Failure.InvalidInput)
+
+        var networkError = false
+
+        // 1. AI generate
+        val generated = when (val genResult = generate(query, api, upsert)) {
+            is Response.Success -> genResult.data
+            is Response.Error -> {
+                networkError = true
+                null
+            }
+        }
+
+        // 2. API search
+        val apiItems = when (
+            val apiResult = searchApi(
+                query = query,
+                api = api,
+                upsert = { portions ->
+                    portions.forEach { portion ->
+                        withContext(Dispatchers.IO) { upsert(portion) }
+                    }
+                }
+            )
+        ) {
+            is Response.Success -> apiResult.data
+            is Response.Error -> {
+                networkError = true
+                emptyList()
+            }
+        }
+
+        // 3. Local search
+        val localItems = when (
+            val localResult = searchLocal(query, limit = 100, offset = 0, dao = dao)
+        ) {
+            is Response.Success -> {
+                localResult.data
+            }
+            is Response.Error -> {// local should never trigger networkError
+                emptyList()
+            }
+        }
+
+        // 4. Filter out duplicates
+        val apiBarcodes = apiItems.map { it.barcode }.toSet()
+        val extraLocalItems = localItems.filter { it.barcode !in apiBarcodes }
+        val combinedItems = extraLocalItems + apiItems
+
+        // 6. Merge
+        val searchResult = SearchResult(combinedItems, generated)
+
+        println(println("MyLog: generated: " + searchResult.generated?.name + " portions found: " + searchResult.portions.size))
+
+        // 6. Return based on content and errors
+        return if (combinedItems.isEmpty()){
+            if (networkError) {
+                Response.Error(Failure.Network)
+            } else {
+                Response.Error(Failure.EmptyResult)
+            }
+        } else {
+            Response.Success(searchResult)
+        }
+    }
+
+
 
 private suspend fun getSummary(date: Int, meal: Int): Portion =
         withContext(Dispatchers.Default) {

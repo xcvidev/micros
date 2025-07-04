@@ -4,16 +4,18 @@ import android.app.Application
 import androidx.room.Room
 import com.xcvi.micros.data.AppDatabase
 import com.xcvi.micros.data.food.FoodRepository
+import com.xcvi.micros.data.food.model.entity.tag
 import com.xcvi.micros.data.food.source.FoodApi
 import com.xcvi.micros.data.food.source.FoodDao
+import com.xcvi.micros.data.food.source.UpsertDao
 import com.xcvi.micros.data.weight.WeightRepository
 import com.xcvi.micros.data.weight.source.WeightDao
-import com.xcvi.micros.ui.destinations.food.f3.AddViewModel
-import com.xcvi.micros.ui.destinations.food.f1.FoodViewModel
-import com.xcvi.micros.ui.destinations.food.f5.DetailsViewModel
-import com.xcvi.micros.ui.destinations.food.f4.ScanViewModel
-import com.xcvi.micros.ui.destinations.stats.StatsViewModel
-import com.xcvi.micros.ui.destinations.weight.WeightViewModel
+import com.xcvi.micros.ui.feature_food.details.DetailsViewModel
+import com.xcvi.micros.ui.feature_food.dashoard.FoodViewModel
+import com.xcvi.micros.ui.feature_food.search.SearchViewModel
+import com.xcvi.micros.ui.feature_food.scan.ScanViewModel
+import com.xcvi.micros.ui.feature_stats.StatsViewModel
+import com.xcvi.micros.ui.feature_weight.WeightViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.features.HttpTimeout
@@ -23,6 +25,8 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -34,7 +38,7 @@ class App : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@App)
-            modules(viewModelModule,repositoryModule, dbModule, apiModule)
+            modules(viewModelModule, repositoryModule, dbModule, apiModule)
         }
     }
 
@@ -42,8 +46,7 @@ class App : Application() {
 
         val viewModelModule = module {
             viewModel { FoodViewModel(get()) }
-            //viewModel { MealViewModel(get()) }  // now sharing with FoodViewModel
-            viewModel { AddViewModel(get()) }
+            viewModel { SearchViewModel(get()) }
             viewModel { ScanViewModel(get()) }
             viewModel { DetailsViewModel(get()) }
             viewModel { WeightViewModel(get()) }
@@ -51,14 +54,25 @@ class App : Application() {
         }
 
         val repositoryModule = module {
-            single { FoodRepository(api = get<FoodApi>(), dao = get<FoodDao>()) }
+            single {
+                val upsertDao = get<UpsertDao>()
+                FoodRepository(
+                    api = get<FoodApi>(),
+                    dao = get<FoodDao>(),
+                    upsert = { portions ->
+                        withContext(Dispatchers.IO) {
+                            upsertDao.upsert(portions.tag())
+                        }
+                    }
+                )
+            }
             single { WeightRepository(dao = get<WeightDao>()) }
         }
 
         val apiModule = module {
             val scanClient = HttpClient(Android) {
                 install(HttpTimeout) {
-                    connectTimeoutMillis = 5000
+                    requestTimeoutMillis = 5000
                 }
 
                 install(JsonFeature) {
@@ -114,6 +128,7 @@ class App : Application() {
             }
             single { get<AppDatabase>().weightDao() }
             single { get<AppDatabase>().foodDao() }
+            single { get<AppDatabase>().upsertDao() }
 
             /*
             single {

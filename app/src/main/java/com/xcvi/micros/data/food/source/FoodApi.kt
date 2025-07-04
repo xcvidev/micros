@@ -2,12 +2,15 @@ package com.xcvi.micros.data.food.source
 
 import com.xcvi.micros.data.food.model.entity.Portion
 import com.xcvi.micros.data.food.model.dto.ScanDTO
-import com.xcvi.micros.data.food.model.entity.Macros
+import com.xcvi.micros.data.food.model.dto.SearchDTO
 import com.xcvi.micros.data.food.toPortionCache
+import com.xcvi.micros.domain.Failure
+import com.xcvi.micros.domain.Response
 import com.xcvi.micros.domain.getNow
 import com.xcvi.micros.domain.roundDecimals
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +51,7 @@ class FoodApi(
                     name = cleanedDesc,
                     barcode = "AI_${cleanedDesc}_${getNow()}",
                     macros = dto.macros.copy(
-                        calories = (dto.macros.protein*4 + dto.macros.carbohydrates*4 + dto.macros.fats*9).roundDecimals()
+                        calories = (dto.macros.protein * 4 + dto.macros.carbohydrates * 4 + dto.macros.fats * 9).roundDecimals()
                     )
                 )
                 if (portion.macros.isEmpty()) {
@@ -117,8 +120,6 @@ class FoodApi(
     }
 
 
-
-
     private fun getEnhancePrompt(portion: Portion): String {
         val partialJson = Json.encodeToString(Portion.serializer(), portion)
         val prompt = """
@@ -176,7 +177,7 @@ class FoodApi(
         return prompt
     }
 
-    suspend fun scan(barcode: String): Portion? {
+    suspend fun scan(barcode: String): Response<Portion> {
         val url = "https://world.openfoodfacts.org/api/v3/product/$barcode"
         return try {
             val res: ScanDTO = withContext(Dispatchers.IO) {
@@ -184,19 +185,37 @@ class FoodApi(
                     url(url)
                 }
             }
-            val dto = res.product?.toPortionCache() ?: return null
-            if(dto.macros.isEmpty()){
-                return null
-            }
-            dto
+            val dto = res.product?.toPortionCache() ?: return Response.Error(Failure.EmptyResult)
+            Response.Success(dto)
         } catch (e: Exception) {
-            println("Error: ${e.message}")
-            null
+            Response.Error(Failure.Network)
         }
     }
 
+    suspend fun search(query: String, pageSize: Int = 50, page: Int = 1): Response<List<Portion>> {
+        val url = "https://world.openfoodfacts.org/cgi/search.pl"
+        try {
+            val res: SearchDTO = withContext(Dispatchers.IO) {
+                scanClient.get {
+                    url(url)
+                    parameter("search_terms", query)
+                    parameter("page", page)
+                    parameter("page_size", pageSize)
+                    parameter("search_simple", 1)
+                    parameter("action", "process")
+                    parameter("json", 1)
 
+                }
+            }
 
+            val products = withContext(Dispatchers.Default) {
+                res.products.mapNotNull { it.toPortionCache() }
+            }
+            return Response.Success(products)
+        } catch (e: Exception) {
+            return Response.Error(e)
+        }
+    }
 }
 
 private fun getFullEstimatePrompt(userInput: String): String {
