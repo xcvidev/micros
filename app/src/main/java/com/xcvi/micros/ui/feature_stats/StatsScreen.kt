@@ -19,8 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xcvi.micros.R
-import com.xcvi.micros.data.food.FoodStats
-import com.xcvi.micros.data.food.model.entity.Portion
+import com.xcvi.micros.data.food.model.FoodStats
 import com.xcvi.micros.data.weight.model.WeightStats
 import com.xcvi.micros.ui.core.DropDownChip
 import com.xcvi.micros.ui.core.OnNavigation
@@ -114,7 +113,12 @@ fun StatsScreen(
                     data = if (selectedFilter == weeksFilter) state.weightsByWeek else state.weightsByMonth,
                     showDate = selectedFilter == weeksFilter,
                     noDataText = noWeightDataText,
-                    onScroll = { weights = it }
+                    onScroll = {
+                        weights = it
+                        if (it.normalized != null){
+                            println("Normlized: " + it.normalized)
+                        }
+                    }
                 )
             }
             WeightSummary(

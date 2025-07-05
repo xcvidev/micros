@@ -331,7 +331,7 @@ fun DotGraph(
                         val x = startX + i * tickSpacingPx
                         val heightRatio = (yValue / maxY).coerceIn(0.0, 1.0)
                         val barHeight = (heightRatio * maxBarHeight).toFloat()
-                        val y = bottomY - barHeight
+                        val y = bottomY - barHeight/1.5f
                         add(Offset(x, y))
                     }
                 }
@@ -398,7 +398,7 @@ fun DotGraph(
                 yValue?.let { value ->
                     val heightRatio = (value / maxY).coerceIn(0.0, 1.0)
                     val barHeight = (heightRatio * maxBarHeight).toFloat()
-                    val y = bottomY - barHeight
+                    val y = bottomY - barHeight /1.5f
 
                     val color = if (isSelected) selectedDotColor else unselectedDotColor
                     drawCircle(

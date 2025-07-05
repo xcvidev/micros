@@ -1,7 +1,10 @@
 package com.xcvi.micros.data.food
 
+import com.xcvi.micros.data.food.model.FoodStats
 import com.xcvi.micros.data.food.model.MealCard
 import com.xcvi.micros.data.food.model.entity.Portion
+import com.xcvi.micros.data.food.model.groupByMonth
+import com.xcvi.micros.data.food.model.groupByWeek
 import com.xcvi.micros.data.food.source.FoodApi
 import com.xcvi.micros.data.food.source.FoodDao
 import com.xcvi.micros.domain.Failure
@@ -18,6 +21,40 @@ class FoodRepository(
 ) {
 
     /**
+     * Portion Details
+     */
+    suspend fun getPortion(
+        meal: Int,
+        date: Int,
+        barcode: String,
+        amount: Int
+    ): Response<Portion> {
+        try {
+            val exactPortion = withContext(Dispatchers.IO) {
+                dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
+            }?.scaledTo(amount.toDouble())
+
+            if (exactPortion != null) {
+                 return Response.Success(exactPortion)
+            }
+
+            val cachedPortion = withContext(Dispatchers.IO) {
+                dao.getPortion(barcode = barcode)
+            }?.scaledTo(amount.toDouble())?.copy(date = date, meal = meal)
+            if (cachedPortion != null) {
+                return Response.Success(cachedPortion)
+            }
+
+            return Response.Error(Failure.Unknown)
+        } catch (e: Exception) {
+            println("MyLog: Error ${e.message}")
+            return Response.Error(Failure.Database)
+        }
+    }
+
+
+
+    /**
      * STATS
      */
     suspend fun stats(): Response<Pair<List<FoodStats>, List<FoodStats>>> {
@@ -25,10 +62,9 @@ class FoodRepository(
             val foodStats = withContext(Dispatchers.IO) {
                 dao.sumMacros()
             }
-            println(foodStats)
-
-            return Response.Error(Failure.Database)
-
+            val byWeek = foodStats.groupByWeek()
+            val byMonth = foodStats.groupByMonth()
+            return Response.Success(Pair(byWeek, byMonth))
         } catch (e: Exception) {
             return Response.Error(Failure.Database)
         }
@@ -88,37 +124,6 @@ class FoodRepository(
         }
     }
 
-
-    /**
-     * Portion Details
-     */
-    suspend fun getPortion(
-        meal: Int,
-        date: Int,
-        barcode: String,
-        amount: Int
-    ): Response<Portion> {
-        try {
-            val exactPortion = withContext(Dispatchers.IO) {
-                dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
-            }
-            if (exactPortion != null) {
-                return Response.Success(exactPortion.scaledTo(amount.toDouble()))
-            }
-            val cachedPortion = withContext(Dispatchers.IO) {
-                dao.getPortion(barcode = barcode)
-            }
-            if (cachedPortion != null) {
-                val res =
-                    cachedPortion.scaledTo(amount.toDouble()).copy(date = date, meal = meal)
-                return Response.Success(res)
-            }
-            return Response.Error(Failure.Unknown)
-        } catch (e: Exception) {
-            println("MyLog: Error ${e.message}")
-            return Response.Error(Failure.Database)
-        }
-    }
 
 
     /**
@@ -200,131 +205,3 @@ class FoodRepository(
 
 }
 
-
-/*
-
-suspend fun search(query: String): Response<SearchResult> {
-        if (query.isBlank()) return Response.Error(Failure.InvalidInput)
-
-        var networkError = false
-
-        // 1. AI generate
-        val generated = when (val genResult = generate(query, api, upsert)) {
-            is Response.Success -> genResult.data
-            is Response.Error -> {
-                networkError = true
-                null
-            }
-        }
-
-        // 2. API search
-        val apiItems = when (
-            val apiResult = searchApi(
-                query = query,
-                api = api,
-                upsert = { portions ->
-                    portions.forEach { portion ->
-                        withContext(Dispatchers.IO) { upsert(portion) }
-                    }
-                }
-            )
-        ) {
-            is Response.Success -> apiResult.data
-            is Response.Error -> {
-                networkError = true
-                emptyList()
-            }
-        }
-
-        // 3. Local search
-        val localItems = when (
-            val localResult = searchLocal(query, limit = 100, offset = 0, dao = dao)
-        ) {
-            is Response.Success -> {
-                localResult.data
-            }
-            is Response.Error -> {// local should never trigger networkError
-                emptyList()
-            }
-        }
-
-        // 4. Filter out duplicates
-        val apiBarcodes = apiItems.map { it.barcode }.toSet()
-        val extraLocalItems = localItems.filter { it.barcode !in apiBarcodes }
-        val combinedItems = extraLocalItems + apiItems
-
-        // 6. Merge
-        val searchResult = SearchResult(combinedItems, generated)
-
-        println(println("MyLog: generated: " + searchResult.generated?.name + " portions found: " + searchResult.portions.size))
-
-        // 6. Return based on content and errors
-        return if (combinedItems.isEmpty()){
-            if (networkError) {
-                Response.Error(Failure.Network)
-            } else {
-                Response.Error(Failure.EmptyResult)
-            }
-        } else {
-            Response.Success(searchResult)
-        }
-    }
-
-
-
-private suspend fun getSummary(date: Int, meal: Int): Portion =
-        withContext(Dispatchers.Default) {
-            val macroDeferred = async { dao.sumMacros(date = date, meal = meal) }
-            val mineralDeferred = async { dao.sumMinerals(date = date, meal = meal) }
-            val vitaminDeferred = async { dao.sumVitamins(date = date, meal = meal) }
-            val aminoDeferred = async { dao.sumAminoacids(date = date, meal = meal) }
-
-            val macros = macroDeferred.await() ?: Macros()
-            val minerals = mineralDeferred.await() ?: Minerals()
-            val vitamins = vitaminDeferred.await() ?: Vitamins()
-            val aminoAcids = aminoDeferred.await() ?: AminoAcids()
-
-            Portion(
-                date = date,
-                meal = meal,
-                name = "Daily Total",
-                brand = "",
-                barcode = "summary_$date",
-                novaGroup = 0.0,
-                isFavorite = 0,
-                amountInGrams = 0.0,
-                ingredients = "",
-                macros = macros.roundDecimals(),
-                minerals = minerals.roundDecimals(),
-                vitamins = vitamins.roundDecimals(),
-                aminoAcids = aminoAcids.roundDecimals()
-            )
-        }
-
-    suspend fun insertPortion() {
-        (1..10).forEach {
-            val protein = Random.nextInt(30,40)
-            val carbohydrates = Random.nextInt(50,100)
-            val fats = Random.nextInt(0,5)
-            val portion = Portion(
-                date = getToday() - (it % 3),
-                meal = Random.nextInt(1, 6),
-                name = "Food $it",
-                barcode = "barcode $it",
-                amountInGrams = Random.nextDouble(50.0, 200.0).roundDecimals(),
-                macros = Macros(
-                    calories = (protein * 4.0 + carbohydrates * 4.0 + fats * 9.0).roundDecimals(),
-                    protein = protein * 1.0,
-                    carbohydrates = carbohydrates* 1.0,
-                    fats = fats* 1.0
-                ),
-                minerals = Minerals(calcium = 150.0),
-                vitamins = Vitamins(vitaminA = 100.0),
-                aminoAcids = AminoAcids(leucine = protein * 0.1),
-            )
-
-            dao.upsertPortion(portion)
-
-        }
-    }
- */

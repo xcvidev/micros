@@ -60,12 +60,21 @@ class FoodApi(
         }
     }
 
-    suspend fun enhance(portion: Portion): Portion? {
-        val prompt = getEnhancePrompt(portion)
-        val json = queryOpenAi(prompt)
-        return json?.let {
-            Json.decodeFromString<Portion>(it)
+    suspend fun enhance(portion: Portion?): Portion? {
+        if (portion == null) {
+            return null
         }
+        val prompt = getEnhancePrompt(portion)
+        val json = queryOpenAi(prompt) ?: return null
+        val jsonClean = json.trim()
+            .removePrefix("```json")
+            .removePrefix("```")
+            .removeSuffix("```")
+            .trim()
+        val dto = Json {
+            ignoreUnknownKeys = true
+        }.decodeFromString<Portion>(jsonClean)
+        return dto
     }
 
     private suspend fun queryOpenAi(prompt: String): String? {

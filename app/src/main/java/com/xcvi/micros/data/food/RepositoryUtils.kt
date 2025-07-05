@@ -2,6 +2,7 @@ package com.xcvi.micros.data.food
 
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.xcvi.micros.data.food.model.FoodStats
 import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
@@ -10,6 +11,9 @@ import com.xcvi.micros.data.food.model.entity.Vitamins
 import com.xcvi.micros.data.food.source.FoodDao
 import com.xcvi.micros.domain.Failure
 import com.xcvi.micros.domain.Response
+import com.xcvi.micros.domain.generateMonthsBetween
+import com.xcvi.micros.domain.generateWeeksBetween
+import com.xcvi.micros.domain.getLocalDate
 import com.xcvi.micros.domain.getStartOfMonth
 import com.xcvi.micros.domain.getStartOfWeek
 import com.xcvi.micros.domain.normalizeToWordSet
@@ -23,77 +27,11 @@ const val PAGE_SIZE = 50
 const val OFFSET = 0
 const val PAGE = 1
 
-data class FoodStats(
-    val date: Int,
-    val calories: Double,
-    val protein: Double,
-    val carbohydrates: Double,
-    val fats: Double
-)
 
-private fun List<FoodStats>.groupByPeriod(
-    keySelector: (FoodStats) -> Int
-): Map<Int, FoodStats> {
-    return this.groupBy(keySelector).mapValues { (_, group) ->
-        val count = group.size.toDouble()
-        FoodStats(
-            date = group.first().date, // will override later
-            calories = group.sumOf { it.calories } / count,
-            protein = group.sumOf { it.protein } / count,
-            carbohydrates = group.sumOf { it.carbohydrates } / count,
-            fats = group.sumOf { it.fats } / count
-        )
-    }
-}
-fun generateWeeksBetween(startDate: Int, endDate: Int): List<Int> {
-    val weeks = mutableListOf<Int>()
-    var current = startDate.getStartOfWeek()
-    val end = endDate.getStartOfWeek()
-    while (current <= end) {
-        weeks.add(current)
-        current += 7
-    }
-    return weeks
-}
-fun generateMonthsBetween(startDate: Int, endDate: Int): List<Int> {
-    val months = mutableListOf<Int>()
-    var current = startDate.getStartOfMonth()
-    val lastMonth = endDate.getStartOfMonth()
 
-    while (current <= lastMonth) {
-        months.add(current)
-        val localDate = LocalDate.fromEpochDays(current)
-        val nextMonth = LocalDate(localDate.year, localDate.month.ordinal + 1, 1)
-        current = nextMonth.toEpochDays()
-    }
 
-    return months
-}
-fun List<FoodStats>.groupByWeekComplete(): List<FoodStats> {
-    if (this.isEmpty()) return emptyList()
-    val grouped = this.groupByPeriod { it.date.getStartOfWeek() }
-    val minDate = this.minOf { it.date }
-    val maxDate = this.maxOf { it.date }
-    val allWeeks = generateWeeksBetween(minDate, maxDate)
 
-    return allWeeks.map { weekStart ->
-        grouped[weekStart]?.copy(date = weekStart)
-            ?: FoodStats(date = weekStart, calories = 0.0, protein = 0.0, carbohydrates = 0.0, fats = 0.0)
-    }
-}
 
-fun List<FoodStats>.groupByMonthComplete(): List<FoodStats> {
-    if (this.isEmpty()) return emptyList()
-    val grouped = this.groupByPeriod { it.date.getStartOfMonth() }
-    val minDate = this.minOf { it.date }
-    val maxDate = this.maxOf { it.date }
-    val allMonths = generateMonthsBetween(minDate, maxDate)
-
-    return allMonths.map { monthStart ->
-        grouped[monthStart]?.copy(date = monthStart)
-            ?: FoodStats(date = monthStart, calories = 0.0, protein = 0.0, carbohydrates = 0.0, fats = 0.0)
-    }
-}
 
 
 suspend fun <FallbackRequest, ApiResult, DbResult> apiCacheFetch(
@@ -130,8 +68,7 @@ suspend fun <FallbackRequest, ApiResult, DbResult> apiCacheFetch(
 
             if (dbResult != null) {
                 Response.Success(dbResult)
-            }
-            else {
+            } else {
                 Response.Error(databaseFailure)
             }
         }
@@ -146,8 +83,7 @@ suspend fun <FallbackRequest, ApiResult, DbResult> apiCacheFetch(
 
             if (fallbackResult != null) {
                 Response.Success(fallbackResult)
-            }
-            else {
+            } else {
                 Response.Error(apiResponse.error)
             }
         }

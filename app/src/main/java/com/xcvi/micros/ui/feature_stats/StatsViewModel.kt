@@ -2,7 +2,7 @@ package com.xcvi.micros.ui.feature_stats
 
 import androidx.lifecycle.viewModelScope
 import com.xcvi.micros.data.food.FoodRepository
-import com.xcvi.micros.data.food.FoodStats
+import com.xcvi.micros.data.food.model.FoodStats
 import com.xcvi.micros.data.weight.WeightRepository
 import com.xcvi.micros.data.weight.model.WeightStats
 import com.xcvi.micros.domain.Response
@@ -24,14 +24,20 @@ class StatsViewModel(
     fun getData() {
 
         viewModelScope.launch {
-            val weights = when (val res = weightRepository.stats()) {
-                is Response.Error -> Pair(emptyList(), emptyList())
-                is Response.Success -> res.data
-            }
             val foods = when (val res = foodRepository.stats()) {
                 is Response.Error -> Pair(emptyList(), emptyList())
                 is Response.Success -> res.data
             }
+            val weights = when (val res = weightRepository.stats()) {
+                is Response.Error -> Pair(emptyList(), emptyList())
+                is Response.Success ->{
+                    val byWeek = res.data.first
+                    val byMonth = res.data.second
+
+                    Pair(byWeek, byMonth)
+                }
+            }
+
             updateData {
                 copy(
                     hasData = true,

@@ -18,6 +18,39 @@ import java.util.Locale
 
 
 /**
+ * Stats
+ */
+fun generateWeeksBetween(startDate: Int?, endDate: Int?): List<Int> {
+    if (startDate == null || endDate == null) return emptyList()
+    val weeks = mutableListOf<Int>()
+    var current = startDate.getStartOfWeek()
+    val end = endDate.getStartOfWeek()
+    while (current <= end) {
+        weeks.add(current)
+        current += 7
+    }
+    return weeks
+}
+
+fun generateMonthsBetween(startDate: Int?, endDate: Int?): List<Int> {
+    if (startDate == null || endDate == null) return emptyList()
+    val months = mutableListOf<Int>()
+    var current = startDate.getStartOfMonth().getLocalDate().month.ordinal + 1
+    val lastMonth = endDate.getStartOfMonth().getLocalDate().month.ordinal + 1
+
+    while (current <= lastMonth) {
+        months.add(current)
+        current += 1
+    }
+    return months.map { monthOrdinal ->
+        LocalDate(
+            year = startDate.getLocalDate().year,
+            monthNumber = monthOrdinal, dayOfMonth = 1
+        ).toEpochDays()
+    }
+}
+
+/**
  * Get Current
  */
 fun getNow(): Long {

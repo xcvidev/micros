@@ -70,7 +70,7 @@
 
     <string name="food_log_app_bar_title">Nutrizione</string>
     <string name="amino_acids">Aminoacidi</string>
-    <string name="macros">Macronutrienti</string>
+    <string name="macros">Nutrienti</string>
     <string name="minerals">Minerali</string>
     <string name="vitamins">Vitamine</string>
     <string name="weight_manager">Gestione del peso</string>

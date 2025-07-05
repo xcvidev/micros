@@ -31,6 +31,7 @@ fun MicrosSection(
     mineralTitle: String,
     vitaminTitle: String,
 ) {
+
     val context = LocalContext.current
     val macrosLabeled = macros.toLabeledPairs(context).drop(1)
     val mineralsLabeled = minerals.toLabeledPairs(context)
@@ -56,6 +57,7 @@ fun MicrosSection(
         }
 
 
+        /*
         Text(
             text = mineralTitle,
             fontSize = MaterialTheme.typography.bodySmall.fontSize,
@@ -101,7 +103,11 @@ fun MicrosSection(
             )
         }
 
+         */
+
     }
+
+
 }
 
 @Composable

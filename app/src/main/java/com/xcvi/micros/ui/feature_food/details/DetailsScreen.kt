@@ -78,15 +78,6 @@ fun DetailsScreen(
     }
 
     val onBack = {
-        /*
-        navController.navigate(
-            FoodGraph.Add(date = date, meal = meal)
-        ) {
-            popUpTo(FoodGraph.Meal(date = date, meal = meal)) {
-                inclusive = false
-            }
-        }
-         */
         navController.popBackStack()
     }
 

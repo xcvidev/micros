@@ -4,9 +4,8 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.RawQuery
-import androidx.room.Upsert
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.xcvi.micros.data.food.FoodStats
+import com.xcvi.micros.data.food.model.FoodStats
 import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals

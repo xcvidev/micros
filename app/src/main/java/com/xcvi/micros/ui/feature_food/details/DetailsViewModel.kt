@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.xcvi.micros.data.food.model.entity.Portion
 import com.xcvi.micros.data.food.scaledCalories
 import com.xcvi.micros.data.food.FoodRepository
+import com.xcvi.micros.data.food.scaledTo
 import com.xcvi.micros.domain.Response
 import com.xcvi.micros.ui.BaseViewModel
 import kotlinx.coroutines.launch
@@ -45,14 +46,17 @@ class DetailsViewModel(
                     }
                 }
             }
-
         }
     }
 
     fun updateNumberPickerValue(value: Int){
         val portion = state.portion ?: return
         updateData {
-            copy(numberPickerValue = value, numberPickerCalorie = portion.scaledCalories(value))
+            copy(
+                numberPickerValue = value,
+                numberPickerCalorie = portion.scaledCalories(value),
+                portion = portion.scaledTo(value*1.0)
+            )
         }
     }
 
