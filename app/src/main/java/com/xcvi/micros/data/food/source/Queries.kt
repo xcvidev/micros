@@ -29,7 +29,17 @@ const val sumMacrosByDate =
             SUM(macro_saturatedFats) AS saturatedFats,
             SUM(macro_fiber) AS fiber,
             SUM(macro_sugars) AS sugars,
-            SUM(macro_salt) AS salt
+            SUM(macro_salt) AS salt,
+            SUM(macro_potassium) AS potassium,
+            SUM(macro_calcium) AS calcium,
+            SUM(macro_magnesium) AS magnesium,
+            SUM(macro_iron) AS iron,
+            SUM(macro_vitaminA) AS vitaminA,
+            SUM(macro_vitaminB) AS vitaminB,
+            SUM(macro_vitaminC) AS vitaminC,
+            SUM(macro_vitaminD) AS vitaminD,
+            SUM(macro_vitaminE) AS vitaminE,
+            SUM(macro_vitaminK) AS vitaminK
         FROM portions
         WHERE date = :date
     """
@@ -58,7 +68,17 @@ const val sumMacrosByDateAndMeal =
             SUM(macro_saturatedFats) AS saturatedFats,
             SUM(macro_fiber) AS fiber,
             SUM(macro_sugars) AS sugars,
-            SUM(macro_salt) AS salt
+            SUM(macro_salt) AS salt,
+            SUM(macro_potassium) AS potassium,
+            SUM(macro_calcium) AS calcium,
+            SUM(macro_magnesium) AS magnesium,
+            SUM(macro_iron) AS iron,
+            SUM(macro_vitaminA) AS vitaminA,
+            SUM(macro_vitaminB) AS vitaminB,
+            SUM(macro_vitaminC) AS vitaminC,
+            SUM(macro_vitaminD) AS vitaminD,
+            SUM(macro_vitaminE) AS vitaminE,
+            SUM(macro_vitaminK) AS vitaminK
         FROM portions
         WHERE date = :date AND meal = :meal
     """

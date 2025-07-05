@@ -61,7 +61,7 @@ fun NumberPicker(
     numberColor: Color = MaterialTheme.colorScheme.onSurface,
     indicatorTickColor: Color = MaterialTheme.colorScheme.onSurface,
     textFieldContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    valueRange: IntRange = 0..1000,
+    valueRange: IntRange = 1..10000,
     initialValue: Int = 100,
     tickSpacingDp: Dp = 12.dp,
     clickGranularity: Int = 10,

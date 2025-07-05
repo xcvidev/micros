@@ -51,6 +51,7 @@ class DetailsViewModel(
 
     fun updateNumberPickerValue(value: Int){
         val portion = state.portion ?: return
+        if(value <= 0) return
         updateData {
             copy(
                 numberPickerValue = value,

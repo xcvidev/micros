@@ -36,7 +36,21 @@ fun Portion.scaledTo(newAmount: Double): Portion {
             fats = macros.fats * ratio,
             saturatedFats = macros.saturatedFats * ratio,
             fiber = macros.fiber * ratio,
-            sugars = macros.sugars * ratio
+            sugars = macros.sugars * ratio,
+            /**
+             *
+             */
+            calcium  = minerals.calcium  * ratio,
+            iron  = minerals.iron  * ratio,
+            magnesium  = minerals.magnesium  * ratio,
+            potassium  = minerals.potassium  * ratio,
+            vitaminA  = vitamins.vitaminA  * ratio,
+            vitaminB  = vitamins.vitaminB1  * ratio,
+            vitaminC  = vitamins.vitaminC  * ratio,
+            vitaminD  = vitamins.vitaminD  * ratio,
+            vitaminE  = vitamins.vitaminE  * ratio,
+            vitaminK  = vitamins.vitaminK  * ratio,
+
         ),
         minerals = Minerals(
             calcium  = minerals.calcium  * ratio,
@@ -117,7 +131,23 @@ fun ProductDTO.toPortionCache(): Portion? {
             saturatedFats = getValue(n.saturated_fat_100g, e.saturated_fat_100g),
             fiber = getValue(n.fiber_100g, e.fiber_100g),
             sugars = getValue(n.sugars_100g, e.sugars_100g),
-            salt = getValue(n.salt_100g, e.salt_100g)
+            salt = getValue(n.salt_100g, e.salt_100g),
+            /**
+             *
+             */
+            calcium = getValue(n.calcium_100g, e.calcium_100g) * 0.001,
+            iron = getValue(n.iron_100g, e.iron_100g) * 0.001,
+            magnesium = getValue(n.magnesium_100g, e.magnesium_100g) * 0.001,
+            potassium = getValue(n.potassium_100g, e.potassium_100g) * 0.001,
+            vitaminA = getValue(n.vitaminA, e.vitaminA) * 0.000001,
+            vitaminB = getValue(
+                n.vitaminB1 + n.vitaminB2 + n.vitaminB3 + n.vitaminB4 + n.vitaminB5 + n.vitaminB6 + n.vitaminB9 + n.vitaminB12,
+                e.vitaminB1 + e.vitaminB2 + e.vitaminB3 + e.vitaminB4 + e.vitaminB5 + e.vitaminB6 + e.vitaminB9 + e.vitaminB12
+            ) * 0.001,
+            vitaminC = getValue(n.vitaminC, e.vitaminC) * 0.001,
+            vitaminD = getValue(n.vitaminD, e.vitaminD) * 0.000001,
+            vitaminE = getValue(n.vitaminE, e.vitaminE) * 0.001,
+            vitaminK = getValue(n.vitaminK, e.vitaminK) * 0.000001
         ),
         minerals = Minerals(
             calcium = getValue(n.calcium_100g, e.calcium_100g),
@@ -170,40 +200,16 @@ fun List<Macros>.sum(): Macros {
         total.saturatedFats += it.saturatedFats
         total.fiber += it.fiber
         total.sugars += it.sugars
-    }
-    return total
-}
-
-fun List<Minerals>.sum(): Minerals {
-    val total = Minerals()
-    forEach {
+        total.salt += it.salt
+        /**
+         *
+         */
         total.calcium += it.calcium
-        total.copper += it.copper
-        total.fluoride += it.fluoride
         total.iron += it.iron
         total.magnesium += it.magnesium
-        total.manganese += it.manganese
-        total.phosphorus += it.phosphorus
         total.potassium += it.potassium
-        total.selenium += it.selenium
-        total.sodium += it.sodium
-        total.zinc += it.zinc
-    }
-    return total
-}
-
-fun List<Vitamins>.sum(): Vitamins {
-    val total = Vitamins()
-    forEach {
         total.vitaminA += it.vitaminA
-        total.vitaminB1 += it.vitaminB1
-        total.vitaminB2 += it.vitaminB2
-        total.vitaminB3 += it.vitaminB3
-        total.vitaminB4 += it.vitaminB4
-        total.vitaminB5 += it.vitaminB5
-        total.vitaminB6 += it.vitaminB6
-        total.vitaminB9 += it.vitaminB9
-        total.vitaminB12 += it.vitaminB12
+        total.vitaminB += it.vitaminB
         total.vitaminC += it.vitaminC
         total.vitaminD += it.vitaminD
         total.vitaminE += it.vitaminE
@@ -211,32 +217,7 @@ fun List<Vitamins>.sum(): Vitamins {
     }
     return total
 }
-fun List<AminoAcids>.sum(): AminoAcids {
-    val total = AminoAcids()
-    forEach {
-        total.alanine += it.alanine
-        total.arginine += it.arginine
-        total.asparagine += it.asparagine
-        total.asparticAcid += it.asparticAcid
-        total.cystine += it.cystine
-        total.glutamicAcid += it.glutamicAcid
-        total.glutamine += it.glutamine
-        total.glycine += it.glycine
-        total.histidine += it.histidine
-        total.isoleucine += it.isoleucine
-        total.leucine += it.leucine
-        total.lysine += it.lysine
-        total.methionine += it.methionine
-        total.phenylalanine += it.phenylalanine
-        total.proline += it.proline
-        total.serine += it.serine
-        total.threonine += it.threonine
-        total.tryptophan += it.tryptophan
-        total.tyrosine += it.tyrosine
-        total.valine += it.valine
-    }
-    return total
-}
+
 
 
 fun List<Portion>.summary(date: Int = 0): Portion {
@@ -264,6 +245,19 @@ fun List<Portion>.summary(date: Int = 0): Portion {
                 sugars += portion.macros.sugars
                 salt += portion.macros.salt
                 fiber += portion.macros.fiber
+                /**
+                 *
+                 */
+                calcium += portion.macros.calcium
+                iron += portion.macros.iron
+                magnesium += portion.macros.magnesium
+                potassium += portion.macros.potassium
+                vitaminA += portion.macros.vitaminA
+                vitaminB += portion.macros.vitaminB
+                vitaminC += portion.macros.vitaminC
+                vitaminD += portion.macros.vitaminD
+                vitaminE += portion.macros.vitaminE
+                vitaminK += portion.macros.vitaminK
             }
             minerals.apply {
                 calcium += portion.minerals.calcium
@@ -346,25 +340,67 @@ fun List<Portion>.avg(date: Int): Portion {
 }
 
 
-fun List<Portion>.groupFoodsByWeek(): Map<LocalDate, Portion> {
-    return this.groupBy { stat ->
-        val date = stat.date.getLocalDate()
-        val dayOfWeek = date.dayOfWeek.isoDayNumber // Monday = 1
-        date.minus(dayOfWeek - 1, DateTimeUnit.DAY) // get Monday of that week
-    }.mapValues {
-        it.value.avg(it.key.toEpochDays())
+
+fun List<Minerals>.sum(): Minerals {
+    val total = Minerals()
+    forEach {
+        total.calcium += it.calcium
+        total.copper += it.copper
+        total.fluoride += it.fluoride
+        total.iron += it.iron
+        total.magnesium += it.magnesium
+        total.manganese += it.manganese
+        total.phosphorus += it.phosphorus
+        total.potassium += it.potassium
+        total.selenium += it.selenium
+        total.sodium += it.sodium
+        total.zinc += it.zinc
     }
+    return total
 }
 
-fun List<Portion>.groupFoodsByMonth(): Map<LocalDate, Portion> {
-    val byMonth = this.groupBy { stat ->
-        val date = LocalDate.fromEpochDays(stat.date)
-        Pair(date.year, date.monthNumber) // Pair: (2025, 6)
+fun List<Vitamins>.sum(): Vitamins {
+    val total = Vitamins()
+    forEach {
+        total.vitaminA += it.vitaminA
+        total.vitaminB1 += it.vitaminB1
+        total.vitaminB2 += it.vitaminB2
+        total.vitaminB3 += it.vitaminB3
+        total.vitaminB4 += it.vitaminB4
+        total.vitaminB5 += it.vitaminB5
+        total.vitaminB6 += it.vitaminB6
+        total.vitaminB9 += it.vitaminB9
+        total.vitaminB12 += it.vitaminB12
+        total.vitaminC += it.vitaminC
+        total.vitaminD += it.vitaminD
+        total.vitaminE += it.vitaminE
+        total.vitaminK += it.vitaminK
     }
-    return byMonth.mapKeys {
-        LocalDate(year = it.key.first, monthNumber = it.key.second, dayOfMonth = 1)
-    }.mapValues {
-        it.value.avg(it.key.toEpochDays())
-    }
+    return total
 }
-
+fun List<AminoAcids>.sum(): AminoAcids {
+    val total = AminoAcids()
+    forEach {
+        total.alanine += it.alanine
+        total.arginine += it.arginine
+        total.asparagine += it.asparagine
+        total.asparticAcid += it.asparticAcid
+        total.cystine += it.cystine
+        total.glutamicAcid += it.glutamicAcid
+        total.glutamine += it.glutamine
+        total.glycine += it.glycine
+        total.histidine += it.histidine
+        total.isoleucine += it.isoleucine
+        total.leucine += it.leucine
+        total.lysine += it.lysine
+        total.methionine += it.methionine
+        total.phenylalanine += it.phenylalanine
+        total.proline += it.proline
+        total.serine += it.serine
+        total.threonine += it.threonine
+        total.tryptophan += it.tryptophan
+        total.tyrosine += it.tyrosine
+        total.valine += it.valine
+    }
+    return total
+}

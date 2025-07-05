@@ -71,9 +71,7 @@ class FoodApi(
             .removePrefix("```")
             .removeSuffix("```")
             .trim()
-        val dto = Json {
-            ignoreUnknownKeys = true
-        }.decodeFromString<Portion>(jsonClean)
+        val dto = Json.decodeFromString<Portion>(jsonClean)
         return dto
     }
 
@@ -149,7 +147,18 @@ class FoodApi(
                 "fats": 0.0,
                 "saturatedFats": 0.0,
                 "fiber": 0.0,
-                "sugars": 0.0
+                "sugars": 0.0,
+                "salt": 0.0,
+                "potassium": 0.0, // milligrams (mg)
+                "calcium": 0.0,  // milligrams (mg)
+                "magnesium": 0.0,  // milligrams (mg)
+                "iron": 0.0,  // milligrams (mg)
+                "vitaminA": 0.0, // micrograms (µg)
+                "vitaminB": 0.0, // milligrams (mg)
+                "vitaminC": 0.0, // milligrams (mg)
+                "vitaminD": 0.0, // micrograms (µg)
+                "vitaminE": 0.0  // milligrams (mg)
+                "vitaminK": 0.0  // micrograms (µg)
             }
         }
 

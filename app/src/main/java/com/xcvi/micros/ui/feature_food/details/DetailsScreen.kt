@@ -174,7 +174,11 @@ fun DetailsScreen(
                     Spacer(modifier = Modifier.height(18.dp))
                     NumberPicker(
                         initialValue = state.numberPickerValue,
-                        onValueChange = viewModel::updateNumberPickerValue,
+                        onValueChange = {
+                            if (it > 0){
+                                viewModel.updateNumberPickerValue(it)
+                            }
+                        },
                         clickGranularity = 1,
                         onImeAction = {
                             keyboard?.hide()

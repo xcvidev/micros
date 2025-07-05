@@ -10,7 +10,7 @@ data class FoodStats(
     val calories: Double = 0.0,
     val protein: Double = 0.0,
     val carbohydrates: Double = 0.0,
-    val fats: Double = 0.0
+    val fats: Double = 0.0,
 )
 
 fun List<FoodStats>.groupByWeek(): List<FoodStats> {

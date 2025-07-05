@@ -90,7 +90,7 @@ class App : Application() {
 
             val openAiClient = HttpClient(Android) {
                 install(HttpTimeout) {
-                    requestTimeoutMillis = 10000
+                    requestTimeoutMillis = 5000
                 }
 
                 install(JsonFeature) {

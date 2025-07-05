@@ -55,6 +55,7 @@
 
     <!--  Vitamins  -->
     <string name="vitaminA">Vitamine A</string>
+    <string name="vitaminB">vitaminB</string>
     <string name="vitaminB1">Vitamine B1 (Thiamine)</string>
     <string name="vitaminB2">Vitamine B2 (Riboflavine)</string>
     <string name="vitaminB3">Vitamine B3 (Niacine)</string>
