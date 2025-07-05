@@ -64,7 +64,7 @@ class FoodApi(
         if (portion == null) {
             return null
         }
-        val prompt = getEnhancePrompt(portion)
+        val prompt = getEnhancementPrompt(portion)
         val json = queryOpenAi(prompt) ?: return null
         val jsonClean = json.trim()
             .removePrefix("```json")
@@ -109,25 +109,37 @@ class FoodApi(
     }
 
 
-    private fun getEnhancePrompt(portion: Portion): String {
-        val partialJson = Json.encodeToString(Portion.serializer(), portion)
+    private fun getEnhancementPrompt(portion: Portion): String {
         val prompt = """
-        You are a nutrition assistant. Based on the partially filled Portion JSON below, enhance any missing or incomplete fields by estimating appropriate values.
+        You are a nutrition assistant.
 
-        When enhancing:
-        - Only fill numeric fields that are 0 if they are likely missing values.
-        - Do not overwrite values that are legitimately zero.
-        - Fill empty strings with meaningful information.
-        - All values must be in grams.
-        - If unsure, assume missing and estimate.
+        Given a JSON object representing a portion of food, return the same JSON object with estimated values **only** for the following fields if they are 0.0:
 
-        Partial Portion JSON:
-        $partialJson
+        - "salt" (g)
+        - "potassium" (mg)
+        - "calcium" (mg)
+        - "magnesium" (mg)
+        - "iron" (mg)
+        - "vitaminA" (µg)
+        - "vitaminB" (mg)
+        - "vitaminC" (mg)
+        - "vitaminD" (µg)
+        - "vitaminE" (mg)
+        - "vitaminK" (µg)
 
-        Return a fully completed Portion JSON object.
+        - Keep all other values the same.
+        - Use common food composition data to estimate missing fields.
+        - Do not guess if there’s truly no clue — leave the value at 0.0.
+        - Use the same structure.
+        - Return **only** a valid JSON object — no explanations or extra output.
+
+        Existing Portion:
+        ${Json.encodeToString(Portion.serializer(), portion)}
     """.trimIndent()
+
         return prompt
-    } //(use lowercase field names with underscores as shown below)
+    }
+
 
     private fun getEstimatePrompt(userInput: String): String {
         val prompt = """

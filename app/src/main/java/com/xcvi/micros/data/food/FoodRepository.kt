@@ -21,8 +21,29 @@ class FoodRepository(
 ) {
 
     /**
-     * Portion Details
+     * Enhance Details TODO
      */
+    /*
+    suspend fun enhance(
+        meal: Int,
+        date: Int,
+        barcode: String,
+        amount: Int
+    ): Response<Portion> = apiCacheFetch(
+        apiCall = {
+            val portion = getPortion(barcode = barcode, date = date, meal = meal, amount = amount)
+            api.enhance(portion)
+        },
+        cacheCall = { upsert(listOf(it)) },
+        dbCall = { dao.getPortion(it.barcode) },
+        fallbackRequest = barcode,
+        fallbackDbCall = {
+            getPortion(barcode = it, date = date, meal = meal, amount = amount)
+        }
+    )
+
+     */
+
     suspend fun getPortion(
         meal: Int,
         date: Int,
@@ -35,7 +56,7 @@ class FoodRepository(
             }?.scaledTo(amount.toDouble())
 
             if (exactPortion != null) {
-                 return Response.Success(exactPortion)
+                return Response.Success(exactPortion)
             }
 
             val cachedPortion = withContext(Dispatchers.IO) {
@@ -51,8 +72,6 @@ class FoodRepository(
             return Response.Error(Failure.Database)
         }
     }
-
-
 
     /**
      * STATS
@@ -123,7 +142,6 @@ class FoodRepository(
             return Response.Error(Failure.Database)
         }
     }
-
 
 
     /**
@@ -205,3 +223,6 @@ class FoodRepository(
 
 }
 
+/*
+
+ */

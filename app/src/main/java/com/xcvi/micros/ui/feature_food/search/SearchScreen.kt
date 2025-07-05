@@ -181,6 +181,8 @@ fun SearchScreen(
                             }
                         }
                         query = ""
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
                     }
                 )
             }

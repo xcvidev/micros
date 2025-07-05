@@ -230,6 +230,9 @@ fun DetailsScreen(
                         aminoAcids = portion.aminoAcids
                     )
                 }
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
 
         }

@@ -30,6 +30,26 @@ const val PAGE = 1
 
 
 
+suspend fun getPortion(
+    meal: Int,
+    date: Int,
+    barcode: String,
+    amount: Int,
+    dao: FoodDao
+): Portion? {
+    val exactPortion = withContext(Dispatchers.IO) {
+        dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
+    }?.scaledTo(amount.toDouble())
+
+    if (exactPortion != null) {
+        return exactPortion
+    }
+    val cachedPortion = withContext(Dispatchers.IO) {
+        dao.getPortion(barcode = barcode)
+    }?.scaledTo(amount.toDouble())?.copy(date = date, meal = meal)
+
+    return cachedPortion
+}
 
 
 
