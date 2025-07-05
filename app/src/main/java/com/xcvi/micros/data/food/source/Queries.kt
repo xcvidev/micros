@@ -33,6 +33,20 @@ const val sumMacrosByDate =
         FROM portions
         WHERE date = :date
     """
+const val sumMacros =
+    """
+        SELECT
+        date,
+        SUM(macro_calories) AS calories,
+        SUM(macro_protein) AS protein,
+        SUM(macro_carbohydrates) AS carbohydrates,
+        SUM(macro_fats) AS fats
+    FROM portions
+    WHERE date > 0
+    GROUP BY date
+    ORDER BY date ASC
+
+    """
 
 const val sumMacrosByDateAndMeal =
     """

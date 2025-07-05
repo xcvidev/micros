@@ -3,28 +3,53 @@ package com.xcvi.micros.ui.feature_food.search
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.R
@@ -33,8 +58,9 @@ import com.xcvi.micros.data.food.model.entity.displayName
 import com.xcvi.micros.domain.Failure
 import com.xcvi.micros.domain.getLocalizedText
 import com.xcvi.micros.ui.FoodGraph
-import com.xcvi.micros.ui.core.LoadingIndicator
+import com.xcvi.micros.ui.core.AnimatedDots
 import com.xcvi.micros.ui.core.OnNavigation
+import com.xcvi.micros.ui.core.StreamingText
 import com.xcvi.micros.ui.core.StreamingTextCard
 import com.xcvi.micros.ui.core.rememberShakeOffset
 import org.koin.androidx.compose.koinViewModel
@@ -47,7 +73,9 @@ fun SearchScreen(
     date: Int,
     meal: Int,
     navController: NavHostController,
+    modifier: Modifier = Modifier,
     viewModel: SearchViewModel = koinViewModel(),
+    placeHolder: String,
     generatingIndicatorText: String = stringResource(R.string.generating),
     generatedLabel: String = stringResource(R.string.generated),
     searchResultsLabel: String = stringResource(R.string.results),
@@ -65,7 +93,9 @@ fun SearchScreen(
     val shakeOffset = rememberShakeOffset(shakeTrigger) {
         shakeTrigger = false // reset after animation
     }
-
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val lazyListState = rememberLazyListState()
 
     val isStreaming = viewModel.state.isStreaming
     val isQuerying = viewModel.state.isQuerying
@@ -74,6 +104,7 @@ fun SearchScreen(
     val generated = viewModel.state.generated
     val recents = viewModel.state.recents
     val searchResults = viewModel.state.searchResults
+    var query by remember { mutableStateOf("") }
 
     val goToItem = { portion: Portion ->
         navController.navigate(
@@ -86,118 +117,270 @@ fun SearchScreen(
         )
     }
 
-    var query by remember { mutableStateOf("") }
-    LazyColumn(
-        modifier = Modifier
-            .padding(24.dp)
-            .offset(x = shakeOffset),
-    ) {
-        item {
-            Text("isQuerying: $isQuerying")
-            Text("isStreaming: $isStreaming")
-            Text("isGenerating: $isGenerating")
-        }
-        item {
-            TextField(
-                value = query,
-                onValueChange = {
-                    query = it
-                    viewModel.filter(query)
-                }
-            )
-            Button(
-                onClick = {
-                    if (isQuerying || isStreaming) {
-                        viewModel.resetState()
-                    } else {
-                        viewModel.find(query) { error ->
-                            if (error == Failure.Network) {
-                                toast(context, error)
-                            }
-                            shakeTrigger = true
-                        }
-                    }
-                    query = ""
-                }
-            ) {
-                Text(
-                    text = if (isQuerying || isStreaming) {
-                        "X"
-                    } else {
-                        "Search"
+    Scaffold(
+        modifier = modifier
+            .offset(x = shakeOffset)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
                     }
                 )
-
-            }
-        }
-
-
-        if (isGenerating || generated != null) {
-            item {
-                GeneratedItem(
-                    generatingIndicatorText = generatingIndicatorText,
-                    hasAnimated = isStreaming,
-                    proteinLabel = proteinLabel,
-                    carbsLabel = carbsLabel,
-                    fatsLabel = fatsLabel,
-                    portion = generated,
-                    onClick = {
-                        if (generated != null) {
-                            goToItem(generated)
-                        }
+            },
+        topBar = {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Default.ArrowBack,"")
                     }
-                ) {
-                    viewModel.stopStreaming()
+                }
+            )
+        }
+    ) { padding ->
+        LaunchedEffect(lazyListState.isScrollInProgress) {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+        }
+
+        LazyColumn(
+            state = lazyListState,
+            modifier = modifier
+                .padding(padding)
+                .padding(horizontal = 12.dp)
+        ) {
+
+            item {
+                SearchField(
+                    placeHolder = placeHolder,
+                    value = query,
+                    onValueChange = {
+                        query = it
+                        viewModel.filter(query)
+                    },
+                    isQuerying = isQuerying,
+                    isStreaming = isStreaming,
+                    onScan = {
+                        navController.navigate(
+                            FoodGraph.Scan(
+                                meal = meal,
+                                date = date
+                            )
+                        )
+                    },
+                    onClick = {
+                        if (isQuerying || isStreaming) {
+                            viewModel.resetState()
+                        } else {
+                            viewModel.find(query) { error ->
+                                if (error == Failure.Network) {
+                                    toast(context, error)
+                                }
+                                shakeTrigger = true
+                            }
+                        }
+                        query = ""
+                    }
+                )
+            }
+
+
+            if (isGenerating || generated != null) {
+                item {
+                    GeneratedItem(
+                        modifier = modifier.padding(vertical = 18.dp),
+                        generatedLabel = generatedLabel,
+                        generatingIndicatorText = generatingIndicatorText,
+                        isStreaming = isStreaming,
+                        proteinLabel = proteinLabel,
+                        carbsLabel = carbsLabel,
+                        fatsLabel = fatsLabel,
+                        portion = generated,
+                        onClick = {
+                            if (generated != null) {
+                                goToItem(generated)
+                            }
+                        }
+                    ) {
+                        viewModel.stopStreaming()
+                    }
                 }
             }
-        }
 
-        if (isQuerying && searchResults.isEmpty()) {
-            item {
-                LoadingIndicator()
-            }
-        }
-        if (searchResults.isNotEmpty()) {
-            item {
-                ResultLabel(text = searchResultsLabel)
-                Text(text = searchResultsLabel)
-                viewModel.state.searchResults.forEach {
-                    PortionItem(it) { goToItem(it) }
+            if (isQuerying && searchResults.isEmpty()) {
+                item {
+                    StreamingText(
+                        modifier = modifier.padding(top = 12.dp, start = 8.dp),
+                        text = "Searching...",
+                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
                 }
             }
-        }
-
-
-
-        if (recents.isNotEmpty()) {
-            item {
-                Text(text = recentlyAddedText)
-                viewModel.state.recents.forEach {
-                    PortionItem(it) { goToItem(it) }
+            if (searchResults.isNotEmpty()) {
+                item {
+                    ResultLabel(
+                        text = searchResultsLabel,
+                        modifier = Modifier.padding(top = 12.dp, start = 8.dp)
+                    )
+                    searchResults.forEach {
+                        PortionItem(
+                            portion = it,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) { goToItem(it) }
+                    }
                 }
             }
-        }
 
+
+            if (recents.isNotEmpty()) {
+                item {
+                    ResultLabel(
+                        text = recentlyAddedText,
+                        modifier = Modifier.padding(top = 12.dp, start = 8.dp)
+                    )
+                    viewModel.state.recents.forEach {
+                        PortionItem(
+                            portion = it,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) { goToItem(it) }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
+            }
+
+        }
     }
-
-
 }
 
 
 @Composable
+fun SearchField(
+    placeHolder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isQuerying: Boolean,
+    isStreaming: Boolean,
+    onClick: () -> Unit,
+    onScan: () -> Unit,
+) {
+
+    val icon = if (isQuerying || isStreaming) {
+        Icons.Default.Stop
+    } else {
+        Icons.Default.ArrowUpward
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(bottom = 12.dp)
+    ) {
+        Card {
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = value,
+                onValueChange = {
+                    onValueChange(it)
+                },
+                maxLines = 1,
+                singleLine = true,
+                placeholder = {
+                    if (isQuerying || isStreaming) {
+                        //AnimatedDots()
+                    } else {
+                        StreamingText(placeHolder)
+                    }
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Transparent,
+                    unfocusedContainerColor = Transparent,
+                    disabledContainerColor = Transparent,
+                    focusedIndicatorColor = Transparent,
+                    unfocusedIndicatorColor = Transparent,
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(
+                    onSend = {
+                        onClick()
+                    }
+                )
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = onScan
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = stringResource(R.string.scan_barcode))
+                        Icon(
+                            painter = painterResource(R.drawable.ic_scan),
+                            contentDescription = ""
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(
+                    onClick = onClick,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(icon, "")
+                }
+            }
+        }
+    }
+}
+
+
+/*
+TextField(
+                    value = query,
+                    onValueChange = {
+                        query = it
+                        viewModel.filter(query)
+                    }
+                )
+                Button(
+
+                ) {
+                    Text(
+                        text = if (isQuerying || isStreaming) {
+                            "X"
+                        } else {
+                            "Search"
+                        }
+                    )
+
+                }
+ */
+
+@Composable
 fun PortionItem(
     portion: Portion,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier.clickable {
+        modifier = modifier.clickable {
             onClick()
         }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -223,8 +406,10 @@ fun PortionItem(
 
 @Composable
 fun GeneratedItem(
+    modifier: Modifier = Modifier,
     generatingIndicatorText: String,
-    hasAnimated: Boolean,
+    generatedLabel: String,
+    isStreaming: Boolean,
     proteinLabel: String,
     carbsLabel: String,
     fatsLabel: String,
@@ -234,23 +419,30 @@ fun GeneratedItem(
 ) {
 
     if (portion == null) {
-        StreamingTextCard(
-            title = generatingIndicatorText,
-            subtitle = "",
-            body = "",
-            onClick = {},
-            onFinished = {},
-            hasAnimated = hasAnimated
-        )
+        Box(modifier = modifier) {
+            StreamingTextCard(
+                title = generatingIndicatorText,
+                subtitle = "",
+                body = "",
+                onClick = {},
+                onFinished = {},
+                isStreaming = isStreaming
+            )
+        }
     } else {
-        StreamingTextCard(
-            title = portion.displayName(),
-            subtitle = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
-            body = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbohydrates} g\n$fatsLabel: ${portion.macros.fats} g ",
-            onClick = onClick,
-            onFinished = onFinished,
-            hasAnimated = hasAnimated
-        )
+        Box(modifier = modifier) {
+            StreamingTextCard(
+                title = portion.displayName(),
+                subtitle = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
+                body = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbohydrates} g\n$fatsLabel: ${portion.macros.fats} g ",
+                onClick = onClick,
+                onFinished = onFinished,
+                isStreaming = isStreaming,
+                action = {
+                    ResultLabel(generatedLabel)
+                }
+            )
+        }
     }
 }
 
@@ -261,9 +453,9 @@ fun toast(context: Context, failure: Failure) {
 
 
 @Composable
-fun ResultLabel(text: String) {
+fun ResultLabel(text: String, modifier: Modifier = Modifier) {
     Text(
-        modifier = Modifier.padding(top = 12.dp, start = 8.dp),
+        modifier = modifier,
         text = text,
         fontSize = MaterialTheme.typography.bodySmall.fontSize,
         fontWeight = FontWeight.Bold,

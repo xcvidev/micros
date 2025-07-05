@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xcvi.micros.R
+import com.xcvi.micros.data.food.FoodStats
 import com.xcvi.micros.data.food.model.entity.Portion
 import com.xcvi.micros.data.weight.model.WeightStats
 import com.xcvi.micros.ui.core.DropDownChip
@@ -79,7 +80,7 @@ fun StatsScreen(
                 ),
         ) {
 
-            var foods by remember { mutableStateOf(Portion()) }
+            var foods by remember { mutableStateOf(FoodStats(0, 0.0, 0.0, 0.0,0.0)) }
             var weights by remember { mutableStateOf(WeightStats()) }
 
             Box(
@@ -95,10 +96,10 @@ fun StatsScreen(
                 )
             }
             FoodSummary(
-                calories = foods.macros.calories.roundToInt(),
-                protein = foods.macros.protein,
-                carbs = foods.macros.carbohydrates,
-                fats = foods.macros.fats,
+                calories = foods.calories.roundToInt(),
+                protein = foods.protein,
+                carbs = foods.carbohydrates,
+                fats = foods.fats,
                 modifier = Modifier.padding(bottom = 36.dp, start = 8.dp, end = 8.dp, top = 12.dp),
                 backgroundColor = Color.Transparent,
                 proteinLabel = stringResource(R.string.protein),

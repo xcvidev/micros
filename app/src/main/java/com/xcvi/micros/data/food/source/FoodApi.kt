@@ -45,24 +45,18 @@ class FoodApi(
                 .removePrefix("```")
                 .removeSuffix("```")
                 .trim()
-            try {
-                val dto = Json.decodeFromString<Portion>(jsonClean)
-                val portion = dto.copy(
-                    name = cleanedDesc,
-                    barcode = "AI_${cleanedDesc}_${getNow()}",
-                    macros = dto.macros.copy(
-                        calories = (dto.macros.protein * 4 + dto.macros.carbohydrates * 4 + dto.macros.fats * 9).roundDecimals()
-                    )
+            val dto = Json.decodeFromString<Portion>(jsonClean)
+            val portion = dto.copy(
+                name = cleanedDesc,
+                barcode = "AI_${cleanedDesc}}",
+                macros = dto.macros.copy(
+                    calories = (dto.macros.protein * 4 + dto.macros.carbohydrates * 4 + dto.macros.fats * 9).roundDecimals()
                 )
-                if (portion.macros.isEmpty()) {
-                    return null
-                }
-                println("Portion: $portion")
-                return portion
-            } catch (e: Exception) {
-                println("Failed to parse Portion: ${e.message}")
-                throw e
+            )
+            if (portion.macros.isEmpty()) {
+                return null
             }
+            return portion
         }
     }
 
@@ -70,12 +64,7 @@ class FoodApi(
         val prompt = getEnhancePrompt(portion)
         val json = queryOpenAi(prompt)
         return json?.let {
-            try {
-                Json.decodeFromString<Portion>(it)
-            } catch (e: Exception) {
-                println("Failed to parse enhanced Portion: ${e.message}")
-                null
-            }
+            Json.decodeFromString<Portion>(it)
         }
     }
 
@@ -100,22 +89,16 @@ class FoodApi(
             put("temperature", 0.7)
         }
 
-        return try {
-            val response: JsonObject = withContext(Dispatchers.IO) {
-                aiClient.post(url) {
-                    body = requestBody
-                }
+        val response: JsonObject = withContext(Dispatchers.IO) {
+            aiClient.post(url) {
+                body = requestBody
             }
-
-            response["choices"]?.jsonArray?.get(0)
-                ?.jsonObject?.get("message")
-                ?.jsonObject?.get("content")
-                ?.jsonPrimitive?.contentOrNull
-
-        } catch (e: Exception) {
-            println("OpenAI API error: ${e.message}")
-            null
         }
+
+        return response["choices"]?.jsonArray?.get(0)
+            ?.jsonObject?.get("message")
+            ?.jsonObject?.get("content")
+            ?.jsonPrimitive?.contentOrNull
     }
 
 
@@ -176,43 +159,36 @@ class FoodApi(
         return prompt
     }
 
-    suspend fun scan(barcode: String): Response<Portion> {
+    suspend fun scan(barcode: String): Portion? {
         val url = "https://world.openfoodfacts.org/api/v3/product/$barcode"
-        return try {
-            val res: ScanDTO = withContext(Dispatchers.IO) {
-                scanClient.get {
-                    url(url)
-                }
+
+        val res: ScanDTO = withContext(Dispatchers.IO) {
+            scanClient.get {
+                url(url)
             }
-            val dto = res.product?.toPortionCache() ?: return Response.Error(Failure.EmptyResult)
-            Response.Success(dto)
-        } catch (e: Exception) {
-            Response.Error(Failure.Network)
         }
+        return res.product?.toPortionCache()
+
     }
 
-    suspend fun search(query: String, pageSize: Int = 50, page: Int = 1): Response<List<Portion>> {
+    suspend fun search(query: String, pageSize: Int = 50, page: Int = 1): List<Portion> {
         val url = "https://world.openfoodfacts.org/cgi/search.pl"
-        try {
-            val res: SearchDTO = withContext(Dispatchers.IO) {
-                scanClient.get {
-                    url(url)
-                    parameter("search_terms", query)
-                    parameter("page", page)
-                    parameter("page_size", pageSize)
-                    parameter("search_simple", 1)
-                    parameter("action", "process")
-                    parameter("json", 1)
 
-                }
-            }
+        val res: SearchDTO = withContext(Dispatchers.IO) {
+            scanClient.get {
+                url(url)
+                parameter("search_terms", query)
+                parameter("page", page)
+                parameter("page_size", pageSize)
+                parameter("search_simple", 1)
+                parameter("action", "process")
+                parameter("json", 1)
 
-            val products = withContext(Dispatchers.Default) {
-                res.products.mapNotNull { it.toPortionCache() }
             }
-            return Response.Success(products)
-        } catch (e: Exception) {
-            return Response.Error(Failure.Network)
+        }
+
+        return withContext(Dispatchers.Default) {
+            res.products.mapNotNull { it.toPortionCache() }
         }
     }
 }

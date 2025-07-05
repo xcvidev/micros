@@ -112,7 +112,7 @@ fun Long.getLocalDate(): LocalDate {
     return localDate.date
 }
 
-fun Long.getLocalDateTime(short: Boolean = true): LocalDateTime {
+fun Long.getLocalDateTime(): LocalDateTime {
     val instant = Instant.fromEpochMilliseconds(this)
     val timeZone = TimeZone.currentSystemDefault()
     return instant.toLocalDateTime(timeZone)

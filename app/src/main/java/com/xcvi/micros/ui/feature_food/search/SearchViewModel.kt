@@ -133,7 +133,6 @@ class SearchViewModel(
                 copy(
                     isQuerying = false,
                     isGenerating = false,
-                    isStreaming = false,
                 )
             }
         }
@@ -163,24 +162,10 @@ class SearchViewModel(
         onSuccess: (List<Portion>) -> Unit,
         onError: (Failure) -> Unit
     ) {
-        val local = when (val res = repository.searchLocal(query)) {
-            is Response.Error -> emptyList()
-            is Response.Success -> res.data
+         when (val res = repository.search(query)) {
+            is Response.Error -> onError(res.error)
+            is Response.Success -> onSuccess(res.data)
         }
-
-        val remote = when (val res = repository.searchRemote(query)) {
-            is Response.Error -> {
-                onError(res.error)
-                emptyList()
-            }
-
-            is Response.Success -> res.data
-        }
-
-        val data = withContext(Dispatchers.Default) {
-            (local + remote).distinctBy { it.barcode }
-        }
-        onSuccess(data)
     }
 
 
@@ -190,10 +175,7 @@ class SearchViewModel(
         onSuccess: (Portion) -> Unit
     ) {
         when (val res = repository.generate(query)) {
-            is Response.Error -> {
-                onError(res.error)
-            }
-
+            is Response.Error -> onError(res.error)
             is Response.Success -> onSuccess(res.data)
         }
     }

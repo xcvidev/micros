@@ -1,9 +1,13 @@
 package com.xcvi.micros.ui.feature_weight
 
+import androidx.lifecycle.viewModelScope
 import com.xcvi.micros.data.weight.WeightRepository
 import com.xcvi.micros.data.weight.model.Weight
+import com.xcvi.micros.domain.Response
 import com.xcvi.micros.domain.getToday
 import com.xcvi.micros.ui.BaseViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.get
 
 class WeightViewModel(
     private val repository: WeightRepository
@@ -17,8 +21,27 @@ class WeightViewModel(
         val deleteWeight: Weight? = null
     )
 
-    fun getData(date: Int) {
+    fun getData(date: Int = state.currentDate) {
+        viewModelScope.launch {
+            val latest = when (val res = repository.get()) {
+                is Response.Error -> 0.0
+                is Response.Success -> res.data.weight
+            }
 
+            when (val res = repository.getWeek(state.currentDate)) {
+                is Response.Error -> {}
+                is Response.Success -> {
+                    val weights = res.data
+                    updateData {
+                        copy(
+                            initialValue = weights.firstOrNull()?.weight ?: latest,
+                            weights = weights
+                        )
+                    }
+                }
+            }
+
+        }
     }
 
     fun setNumberPickerValue(value: Double) {
@@ -31,7 +54,7 @@ class WeightViewModel(
         updateData {
             copy(currentDate = date)
         }
-        getData(date)
+        getData()
     }
 
     fun setDeleteWeight(weight: Weight) {
@@ -40,32 +63,21 @@ class WeightViewModel(
         }
     }
 
-    fun save() {
-        /*
-        repository.weights.add(
-            Weight(
-                value = state.numberPickerValue,
-                timestamp = state.currentDate.getTimestamp(8, 0)
-            )
-        )
-        val weights = repository.weights.filter {
-            it.timestamp.getEpochDate() >= state.currentDate.getStartOfWeek() &&
-                    it.timestamp.getEpochDate() <= state.currentDate.getEndOfWeek()
-        }.sortedByDescending { it.timestamp }
-        updateData {
-            copy(
-                initialValue = weights.lastOrNull()?.value ?: 0.0,
-                weights = weights
-            )
+    fun save(onError: () -> Unit = {}) {
+        viewModelScope.launch {
+            when (repository.save(state.numberPickerValue, state.currentDate)){
+                is Response.Error -> onError()
+                is Response.Success -> getData()
+            }
         }
-
-         */
     }
 
     fun delete() {
-        if (state.deleteWeight == null) return
-        //repository.weights.remove(state.deleteWeight)
-        getData(state.currentDate)
+        viewModelScope.launch {
+            val w = state.deleteWeight ?: return@launch
+            repository.delete(w)
+            getData()
+        }
     }
 }
 

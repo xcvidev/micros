@@ -87,9 +87,11 @@
     <string name="meal">Pasto</string>
     <string name="enter_a_name">Inserisci un nome</string>
     <string name="save_custom_meal">Salva pasto personalizzato</string>
-    <string name="describe_your_food">Descrivi il tuo pasto...</string>
-    <string name="try_a_plate_of_pasta_with_tomato_sauce">Prova con un piatto di pasta al sugo di pomodoro</string>
-    <string name="describe_what_you_ate">Descrivi cosa hai mangiato</string>
+
+    <string name="placeholder2">Descrivi o cerca il tuo cibo...</string>
+    <string name="placeholder1">Prova con "un piatto di pasta con ..."</string>
+    <string name="placeholder3">Descrivi cosa hai mangiato...</string>
+
     <string name="scan_barcode">Scansiona codice</string>
     <string name="generating">Generazione in corso...</string>
     <string name="recently_added">Aggiunti di recente</string>

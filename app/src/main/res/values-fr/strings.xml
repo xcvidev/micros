@@ -87,9 +87,12 @@
     <string name="meal">Repas</string>
     <string name="enter_a_name">Entrez un nom</string>
     <string name="save_custom_meal">Enregistrer le repas personnalisé</string>
-    <string name="describe_your_food">Décrivez votre repas...</string>
-    <string name="try_a_plate_of_pasta_with_tomato_sauce">Essayez une assiette de pâtes à la sauce tomate</string>
-    <string name="describe_what_you_ate">Décrivez ce que vous avez mangé</string>
+
+    <string name="placeholder1">Essayez "assiette de pâtes avec ..."</string>
+    <string name="placeholder2">Décrivez ou recherchez votre aliment...</string>
+    <string name="placeholder3">Décrivez votre repas...</string>
+
+
     <string name="scan_barcode">Scanner le code-barres</string>
     <string name="generating">Génération en cours...</string>
     <string name="recently_added">Ajoutés récemment</string>

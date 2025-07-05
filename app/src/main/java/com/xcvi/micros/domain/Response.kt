@@ -34,6 +34,9 @@ sealed class Failure: Throwable() {
     data object Authentication: Failure() {
         private fun readResolve(): Any = Authentication
     }
+    data object Parsing: Failure() {
+        private fun readResolve(): Any = Parsing
+    }
 }
 
 fun Failure.getLocalizedText(context: Context): String {

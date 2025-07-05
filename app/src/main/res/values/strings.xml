@@ -87,9 +87,9 @@
     <string name="meal">Meal</string>
     <string name="enter_a_name">Enter a name</string>
     <string name="save_custom_meal">Save custom meal</string>
-    <string name="describe_your_food">Describe your food...</string>
-    <string name="try_a_plate_of_pasta_with_tomato_sauce">Try a plate of pasta with tomato sauce</string>
-    <string name="describe_what_you_ate">Describe what you ate</string>
+    <string name="placeholder1">Try "plate of pasta with ..."</string>
+    <string name="placeholder2">Describe or search your food...</string>
+    <string name="placeholder3">Describe your meal...</string>
     <string name="scan_barcode">Scan Barcode</string>
     <string name="generating">Generating...</string>
     <string name="recently_added">Recently Added</string>

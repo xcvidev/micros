@@ -10,7 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.xcvi.micros.data.food.FoodStats
 import com.xcvi.micros.data.food.model.entity.Portion
+import com.xcvi.micros.domain.getLocalDate
 import com.xcvi.micros.domain.monthFormatted
 import com.xcvi.micros.ui.core.BarGraph
 import com.xcvi.micros.ui.core.DotGraph
@@ -20,30 +22,25 @@ import kotlin.math.roundToInt
 @Composable
 fun FoodGraph(
     showDate: Boolean,
-    data: Map<LocalDate, Portion>,
+    data: List<FoodStats>,
     noDataText: String,
-    onScroll: (Portion) -> Unit
+    onScroll: (FoodStats) -> Unit
 ) {
     var selectedIndex by remember { mutableIntStateOf(0) }
     if (data.isEmpty()) {
         EmptyGraph(
             noDataText = noDataText,
         ) {
-            onScroll(Portion())
+
         }
     } else {
-        val dates = data.keys.toList()
-        val foods = data.values.toList()
-        val calories = foods.map { it.macros.calories.roundToInt() }
-        val labels = if (showDate) {
-            dates.map {
-                "${it.monthFormatted(true)} ${it.dayOfMonth}"
-            }
+        val labels = if(showDate) {
+            data.map { it.date.getLocalDate().monthFormatted(true) + " " + it.date.getLocalDate().dayOfMonth }
         } else {
-            dates.map {
-                it.monthFormatted(true)
-            }
+            data.map { it.date.getLocalDate().monthFormatted(true).uppercase() }
         }
+        val calories = data.map { it.calories.roundToInt() }
+
 
         BarGraph(
             yAxis = calories,
@@ -54,7 +51,7 @@ fun FoodGraph(
             maxY = calories.max() * 1.1,
         )
 
-        val currentValue = foods[selectedIndex]
+        val currentValue = data[selectedIndex]
         onScroll(currentValue)
     }
 }

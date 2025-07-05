@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,7 +30,6 @@ import com.xcvi.micros.ui.feature_food.dashoard.FoodScreen
 import com.xcvi.micros.ui.feature_food.dashoard.FoodViewModel
 import com.xcvi.micros.ui.feature_food.details.DetailsScreen
 import com.xcvi.micros.ui.feature_food.meal.MealScreen
-import com.xcvi.micros.ui.feature_food.search.SearchViewModel
 import com.xcvi.micros.ui.feature_food.scan.ScanScreen
 import com.xcvi.micros.ui.feature_stats.StatsScreen
 import com.xcvi.micros.ui.feature_weight.WeightScreen
@@ -87,11 +87,19 @@ fun Destinations(
             }
             slidingComposable<FoodGraph.Search> {
                 val args = it.toRoute<FoodGraph.Search>()
+                val placeHolders = listOf(
+                    stringResource(R.string.placeholder1),
+                    stringResource(R.string.placeholder2),
+                    stringResource(R.string.placeholder3),
+                )
+                val placeHolder = remember { placeHolders.random() }
                 SearchScreen(
+                    placeHolder = placeHolder,
                     navController = navController,
                     date = args.date,
-                    meal = args.meal,
+                    meal = args.meal
                 )
+
             }
             slidingComposable<FoodGraph.Details> {
                 val args = it.toRoute<FoodGraph.Details>()

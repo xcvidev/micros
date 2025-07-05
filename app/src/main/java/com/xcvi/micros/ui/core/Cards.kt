@@ -29,7 +29,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun StreamingTextCard(
-    hasAnimated: Boolean,
+    isStreaming: Boolean,
     title: String,
     subtitle: String,
     body: String,
@@ -37,6 +37,7 @@ fun StreamingTextCard(
     charDelayMillis: Long = 30L,
     onClick: () -> Unit,
     onFinished: (() -> Unit)? = null,
+    action: @Composable () -> Unit = {},
 ) {
     var visibleHeadline by remember(title) { mutableStateOf("") }
     var visibleSubhead by remember(subtitle) { mutableStateOf("") }
@@ -46,19 +47,19 @@ fun StreamingTextCard(
             visibleHeadline = ""
             for (i in title.indices) {
                 visibleHeadline += title[i]
-                if (hasAnimated) { delay(charDelayMillis) }
+                if (isStreaming) { delay(charDelayMillis) }
             }
 
             visibleSubhead = ""
             for (i in subtitle.indices) {
                 visibleSubhead += subtitle[i]
-                if (hasAnimated) { delay(charDelayMillis) }
+                if (isStreaming) { delay(charDelayMillis) }
             }
 
             visibleBody = ""
             for (i in body.indices) {
                 visibleBody += body[i]
-                if (hasAnimated) { delay(charDelayMillis) }
+                if (isStreaming) { delay(charDelayMillis) }
             }
 
             onFinished?.invoke()
@@ -97,6 +98,7 @@ fun StreamingTextCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
             )
+            Box(modifier = Modifier.align(Alignment.End)){ action() }
         }
     }
 }

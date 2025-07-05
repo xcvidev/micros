@@ -18,90 +18,61 @@ class FoodRepository(
 ) {
 
     /**
-     * SEARCH
+     * STATS
      */
-    suspend fun generate(query: String): Response<Portion> {
+    suspend fun stats(): Response<Pair<List<FoodStats>, List<FoodStats>>> {
         try {
-            val res = withContext(Dispatchers.IO) {
-                api.generate(query)
+            val foodStats = withContext(Dispatchers.IO) {
+                dao.sumMacros()
             }
-            if (res != null) {
-                withContext(Dispatchers.IO) {
-                    upsert(listOf(res))
-                }
-                return Response.Success(res)
-            } else {
-                return Response.Error(Failure.EmptyResult)
-            }
+            println(foodStats)
+
+            return Response.Error(Failure.Database)
+
         } catch (e: Exception) {
-            return Response.Error(Failure.Network)
+            return Response.Error(Failure.Database)
         }
+
     }
 
-    suspend fun searchLocal(searchTerm: String): Response<List<Portion>> {
-        try {
+
+    /**
+     * SEARCH
+     */
+    suspend fun generate(description: String): Response<Portion> = apiCacheFetch(
+        apiCall = { api.generate(description) },
+        cacheCall = { upsert(listOf(it)) },
+        dbCall = { dao.getPortion(it.barcode) },
+        fallbackRequest = description,
+        fallbackDbCall = { null }
+    )
+
+    suspend fun scan(barcode: String): Response<Portion> = apiCacheFetch(
+        apiCall = { api.scan(barcode) },
+        cacheCall = { upsert(listOf(it)) },
+        dbCall = { dao.getPortion(it.barcode) },
+        fallbackRequest = barcode,
+        fallbackDbCall = { dao.getPortion(barcode) }
+    )
+
+    suspend fun search(searchTerm: String): Response<List<Portion>> = apiCacheFetch(
+        apiCall = { api.search(searchTerm) },
+        cacheCall = { upsert(it) },
+        dbCall = {
             val query = withContext(Dispatchers.Default) {
                 buildMultiWordQuery(searchTerm, LIMIT, OFFSET)
             }
-            val products = withContext(Dispatchers.IO) {
-                dao.search(query)
+            dao.search(query)
+        },
+        fallbackRequest = searchTerm,
+        fallbackDbCall = { fallbackRequest ->
+            val query = withContext(Dispatchers.Default) {
+                buildMultiWordQuery(fallbackRequest, LIMIT, OFFSET)
             }
-            return if (products.isNotEmpty()) {
-                Response.Success(products)
-            } else{
-                Response.Error(Failure.EmptyResult)
-            }
-        } catch (e: Exception) {
-            println("MyLog: Error ${e.message}")
-            return Response.Error(Failure.Database)
+            dao.search(query)
         }
-    }
+    )
 
-    suspend fun searchRemote(description: String): Response<List<Portion>> {
-        return try {
-            val res = withContext(Dispatchers.IO) {
-                api.search(query = description, pageSize = PAGE_SIZE, page = PAGE)
-            }
-            when (res) {
-                is Response.Error -> return Response.Error(res.error)
-                is Response.Success -> {
-                    if (res.data.isNotEmpty()){
-                        withContext(Dispatchers.IO) {
-                            res.data.forEach { portion ->
-                                upsert(listOf(portion))
-                            }
-                        }
-                        return Response.Success(res.data)
-                    } else {
-                        return Response.Error(Failure.EmptyResult)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            println("MyLog: Error ${e.message}")
-            Response.Error(Failure.Network)
-        }
-    }
-
-
-    suspend fun scan(barcode: String): Response<Unit> {
-        try {
-            val res = withContext(Dispatchers.IO) {
-                api.scan(barcode)
-            }
-            return when (res) {
-                is Response.Error -> Response.Error(res.error)
-                is Response.Success -> {
-                    withContext(Dispatchers.IO) {
-                        upsert(listOf(res.data))
-                    }
-                    Response.Success(Unit)
-                }
-            }
-        } catch (e: Exception) {
-            return Response.Error(Failure.Network)
-        }
-    }
 
     suspend fun getRecents(): Response<List<Portion>> {
         try {
@@ -121,7 +92,12 @@ class FoodRepository(
     /**
      * Portion Details
      */
-    suspend fun getPortion(meal: Int, date: Int, barcode: String, amount: Int): Response<Portion> {
+    suspend fun getPortion(
+        meal: Int,
+        date: Int,
+        barcode: String,
+        amount: Int
+    ): Response<Portion> {
         try {
             val exactPortion = withContext(Dispatchers.IO) {
                 dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
@@ -133,7 +109,8 @@ class FoodRepository(
                 dao.getPortion(barcode = barcode)
             }
             if (cachedPortion != null) {
-                val res = cachedPortion.scaledTo(amount.toDouble()).copy(date = date, meal = meal)
+                val res =
+                    cachedPortion.scaledTo(amount.toDouble()).copy(date = date, meal = meal)
                 return Response.Success(res)
             }
             return Response.Error(Failure.Unknown)

@@ -87,11 +87,10 @@ fun DateSelector(
             )
         ) {
             StreamingText(
-                fullText = buttonText,
+                text = buttonText,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = MaterialTheme.typography.titleSmall.fontSize,
                 style = MaterialTheme.typography.titleSmall,
-
             )
         }
         IconButton(
