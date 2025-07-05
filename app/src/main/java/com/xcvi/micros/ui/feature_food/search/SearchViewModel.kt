@@ -18,10 +18,9 @@ class SearchViewModel(
 
 
     data class State(
-        val isGenerating: Boolean = false,
         val isStreaming: Boolean = false,
-
-        val isSearching: Boolean = false,
+        val isQuerying: Boolean = false,
+        val isGenerating: Boolean = false,
 
         val searchResults: List<Portion> = emptyList(),
         val generated: Portion? = null,
@@ -50,6 +49,19 @@ class SearchViewModel(
         updateData { copy(isStreaming = false) }
     }
 
+    fun resetState() {
+        updateData {
+            copy(
+                isQuerying = false,
+                isStreaming = false,
+                isGenerating = false,
+                generated = null,
+                searchResults = emptyList(),
+                recents = defaultRecents
+            )
+        }
+    }
+
     fun find(query: String, onError: (Failure) -> Unit) {
         if (query.isBlank()) {
             onError(Failure.InvalidInput)
@@ -58,11 +70,11 @@ class SearchViewModel(
         viewModelScope.launch {
             updateData {
                 copy(
-                    isSearching = true,
-                    isGenerating = true,
                     recents = emptyList(),
                     searchResults = emptyList(),
-                    generated = null
+                    generated = null,
+                    isQuerying = true,
+                    isGenerating = true
                 )
             }
             var networkError = false
@@ -77,7 +89,9 @@ class SearchViewModel(
                     },
                     onSuccess = {
                         searchResults = it
-                        updateData { copy(searchResults = it, isSearching = false) }
+                        if (state.isQuerying) {
+                            updateData { copy(searchResults = it) }
+                        }
                     }
                 )
             }
@@ -87,7 +101,7 @@ class SearchViewModel(
                     query = query,
                     onSuccess = {
                         generatedResult = it
-                        if (state.isGenerating) {
+                        if (state.isQuerying) {
                             updateData {
                                 copy(
                                     generated = it,
@@ -113,17 +127,33 @@ class SearchViewModel(
                 } else {
                     onError(Failure.EmptyResult)
                 }
-                updateData {
-                    copy(
-                        isSearching = false,
-                        isGenerating = false,
-                        isStreaming = false,
-                        generated = null,
-                        searchResults = emptyList(),
-                        recents = defaultRecents
-                    )
-                }
+                resetState()
             }
+            updateData {
+                copy(
+                    isQuerying = false,
+                    isGenerating = false,
+                    isStreaming = false,
+                )
+            }
+        }
+    }
+
+
+    fun filter(query: String) {
+        if (query.isBlank()) {
+            resetState()
+            return
+        }
+        if (state.searchResults.isNotEmpty()) {
+            return
+        }
+        updateData {
+            copy(
+                recents = defaultRecents.filter {
+                    it.displayName().contains(other = query, ignoreCase = true)
+                }
+            )
         }
     }
 
@@ -153,6 +183,7 @@ class SearchViewModel(
         onSuccess(data)
     }
 
+
     private suspend fun generate(
         query: String,
         onError: (Failure) -> Unit,
@@ -164,22 +195,6 @@ class SearchViewModel(
             }
 
             is Response.Success -> onSuccess(res.data)
-        }
-    }
-
-
-    fun filter(query: String) {
-        if (query.isBlank()) {
-            updateData { copy(recents = defaultRecents) }
-            return
-        }
-        if (state.searchResults.isNotEmpty()) return
-        updateData {
-            copy(
-                recents = defaultRecents.filter {
-                    it.displayName().contains(other = query, ignoreCase = true)
-                }
-            )
         }
     }
 

@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.R
@@ -32,8 +33,8 @@ import com.xcvi.micros.data.food.model.entity.displayName
 import com.xcvi.micros.domain.Failure
 import com.xcvi.micros.domain.getLocalizedText
 import com.xcvi.micros.ui.FoodGraph
+import com.xcvi.micros.ui.core.LoadingIndicator
 import com.xcvi.micros.ui.core.OnNavigation
-import com.xcvi.micros.ui.core.StreamingText
 import com.xcvi.micros.ui.core.StreamingTextCard
 import com.xcvi.micros.ui.core.rememberShakeOffset
 import org.koin.androidx.compose.koinViewModel
@@ -47,9 +48,9 @@ fun SearchScreen(
     meal: Int,
     navController: NavHostController,
     viewModel: SearchViewModel = koinViewModel(),
+    generatingIndicatorText: String = stringResource(R.string.generating),
     generatedLabel: String = stringResource(R.string.generated),
     searchResultsLabel: String = stringResource(R.string.results),
-    generatingIndicatorText: String = stringResource(R.string.generating),
     proteinLabel: String = stringResource(R.string.protein),
     carbsLabel: String = stringResource(R.string.carbs),
     fatsLabel: String = stringResource(R.string.fats),
@@ -60,11 +61,19 @@ fun SearchScreen(
     }
 
     val context = LocalContext.current
-    var hasStreamed by remember { mutableStateOf(false) }
     var shakeTrigger by remember { mutableStateOf(false) }
     val shakeOffset = rememberShakeOffset(shakeTrigger) {
         shakeTrigger = false // reset after animation
     }
+
+
+    val isStreaming = viewModel.state.isStreaming
+    val isQuerying = viewModel.state.isQuerying
+    val isGenerating = viewModel.state.isGenerating
+
+    val generated = viewModel.state.generated
+    val recents = viewModel.state.recents
+    val searchResults = viewModel.state.searchResults
 
     val goToItem = { portion: Portion ->
         navController.navigate(
@@ -84,6 +93,11 @@ fun SearchScreen(
             .offset(x = shakeOffset),
     ) {
         item {
+            Text("isQuerying: $isQuerying")
+            Text("isStreaming: $isStreaming")
+            Text("isGenerating: $isGenerating")
+        }
+        item {
             TextField(
                 value = query,
                 onValueChange = {
@@ -93,70 +107,171 @@ fun SearchScreen(
             )
             Button(
                 onClick = {
-                    viewModel.find(query) { error ->
-                        if (error == Failure.Network) {
-                            toast(context, error)
+                    if (isQuerying || isStreaming) {
+                        viewModel.resetState()
+                    } else {
+                        viewModel.find(query) { error ->
+                            if (error == Failure.Network) {
+                                toast(context, error)
+                            }
+                            shakeTrigger = true
                         }
-                        shakeTrigger = true
                     }
+                    query = ""
                 }
             ) {
-                Text(text = "Search")
+                Text(
+                    text = if (isQuerying || isStreaming) {
+                        "X"
+                    } else {
+                        "Search"
+                    }
+                )
+
             }
         }
 
-        val isStreaming = viewModel.state.isStreaming
-        val isGenerating = viewModel.state.isGenerating
-        val generated = viewModel.state.generated
-        if (isGenerating) {
-            item { StreamingText(generatingIndicatorText) }
-        }
-        if (isStreaming || generated != null) {
-            item {
-                Text(generatedLabel)
 
+        if (isGenerating || generated != null) {
+            item {
                 GeneratedItem(
+                    generatingIndicatorText = generatingIndicatorText,
+                    hasAnimated = isStreaming,
                     proteinLabel = proteinLabel,
                     carbsLabel = carbsLabel,
                     fatsLabel = fatsLabel,
-                    portion = generated ?: Portion(),
+                    portion = generated,
                     onClick = {
                         if (generated != null) {
                             goToItem(generated)
                         }
                     }
                 ) {
-                    hasStreamed = true
+                    viewModel.stopStreaming()
                 }
             }
         }
 
-        if (viewModel.state.recents.isNotEmpty()) {
+        if (isQuerying && searchResults.isEmpty()) {
             item {
-                Text(text = "Recently Added")
+                LoadingIndicator()
+            }
+        }
+        if (searchResults.isNotEmpty()) {
+            item {
+                ResultLabel(text = searchResultsLabel)
+                Text(text = searchResultsLabel)
+                viewModel.state.searchResults.forEach {
+                    PortionItem(it) { goToItem(it) }
+                }
+            }
+        }
+
+
+
+        if (recents.isNotEmpty()) {
+            item {
+                Text(text = recentlyAddedText)
                 viewModel.state.recents.forEach {
                     PortionItem(it) { goToItem(it) }
                 }
             }
         }
 
-
-        if (viewModel.state.searchResults.isNotEmpty()) {
-            item {
-                Text(text = "Search Results")
-                viewModel.state.searchResults.forEach {
-                    PortionItem(it) { goToItem(it) }
-                }
-            }
-        }
     }
 
 
 }
 
+
+@Composable
+fun PortionItem(
+    portion: Portion,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier.clickable {
+            onClick()
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+        ) {
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = portion.displayName(),
+                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                fontWeight = MaterialTheme.typography.bodyLarge.fontWeight,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+
+@Composable
+fun GeneratedItem(
+    generatingIndicatorText: String,
+    hasAnimated: Boolean,
+    proteinLabel: String,
+    carbsLabel: String,
+    fatsLabel: String,
+    portion: Portion?,
+    onClick: () -> Unit,
+    onFinished: () -> Unit
+) {
+
+    if (portion == null) {
+        StreamingTextCard(
+            title = generatingIndicatorText,
+            subtitle = "",
+            body = "",
+            onClick = {},
+            onFinished = {},
+            hasAnimated = hasAnimated
+        )
+    } else {
+        StreamingTextCard(
+            title = portion.displayName(),
+            subtitle = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
+            body = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbohydrates} g\n$fatsLabel: ${portion.macros.fats} g ",
+            onClick = onClick,
+            onFinished = onFinished,
+            hasAnimated = hasAnimated
+        )
+    }
+}
+
+
 fun toast(context: Context, failure: Failure) {
     Toast.makeText(context, failure.getLocalizedText(context), Toast.LENGTH_LONG).show()
 }
+
+
+@Composable
+fun ResultLabel(text: String) {
+    Text(
+        modifier = Modifier.padding(top = 12.dp, start = 8.dp),
+        text = text,
+        fontSize = MaterialTheme.typography.bodySmall.fontSize,
+        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    )
+}
+
 
 /*
 
@@ -386,21 +501,6 @@ fun AddScreen(
 }
 
 
-
-
-
-@Composable
-fun ResultLabel(text: String) {
-    Text(
-        modifier = Modifier.padding(top = 12.dp, start = 8.dp),
-        text = text,
-        fontSize = MaterialTheme.typography.bodySmall.fontSize,
-        fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-    )
-}
-
 @Composable
 fun SearchField(
     placeHolder: String,
@@ -495,62 +595,6 @@ fun SearchField(
     }
 }
 */
-
-@Composable
-fun PortionItem(
-    portion: Portion,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier.clickable {
-            onClick()
-        }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-        ) {
-
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = portion.displayName(),
-                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                fontWeight = MaterialTheme.typography.bodyLarge.fontWeight,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
-
-
-@Composable
-fun GeneratedItem(
-    proteinLabel: String,
-    carbsLabel: String,
-    fatsLabel: String,
-    portion: Portion,
-    onClick: () -> Unit,
-    onFinished: () -> Unit
-) {
-    StreamingTextCard(
-        title = portion.displayName(),
-        subtitle = "${portion.macros.calories.roundToInt()} kcal, ${portion.amountInGrams.roundToInt()} g",
-        body = "$proteinLabel: ${portion.macros.protein} g\n$carbsLabel: ${portion.macros.carbohydrates} g\n$fatsLabel: ${portion.macros.fats} g ",
-        onClick = onClick,
-        onFinished = onFinished
-    )
-}
-
 
 
 
