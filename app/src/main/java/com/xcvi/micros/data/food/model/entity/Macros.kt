@@ -55,12 +55,12 @@ fun Macros.toLabeledPairs(context: Context): List<Pair<String, String>> {
         context.getString(R.string.calcium) to "${calcium.roundDecimals()} mg",
         context.getString(R.string.magnesium) to "${magnesium.roundDecimals()} mg",
         context.getString(R.string.iron) to "${iron.roundDecimals()} mg",
-        context.getString(R.string.vitaminA) to "${vitaminA.roundDecimals()} mg",
+        context.getString(R.string.vitaminA) to "${vitaminA.roundDecimals()} μg",
         context.getString(R.string.vitaminB) to "${vitaminB.roundDecimals()} mg",
         context.getString(R.string.vitaminC) to "${vitaminC.roundDecimals()} mg",
-        context.getString(R.string.vitaminD) to "${vitaminD.roundDecimals()} mg",
+        context.getString(R.string.vitaminD) to "${vitaminD.roundDecimals()} μg",
         context.getString(R.string.vitaminE) to "${vitaminE.roundDecimals()} mg",
-        context.getString(R.string.vitaminK) to "${vitaminK.roundDecimals()} mg",
+        context.getString(R.string.vitaminK) to "${vitaminK.roundDecimals()} μg",
 
 
     )

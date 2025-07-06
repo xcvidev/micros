@@ -28,7 +28,7 @@ import com.xcvi.micros.data.food.model.MealCard
 import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
-import com.xcvi.micros.data.food.model.entity.Vitamins
+import com.xcvi.micros.data.food.model.entity.VitaminsFull
 import com.xcvi.micros.ui.core.DateSelector
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.FoodGraph
@@ -135,7 +135,7 @@ fun FoodScreen(
                 MicrosSection(
                     macros = state.totalSummary?.macros ?: Macros(),
                     minerals = state.totalSummary?.minerals ?: Minerals(),
-                    vitamins = state.totalSummary?.vitamins ?: Vitamins(),
+                    vitaminsFull = state.totalSummary?.vitaminsFull ?: VitaminsFull(),
                     aminoAcids = state.totalSummary?.aminoAcids ?: AminoAcids(),
                     modifier = Modifier.padding(horizontal = 8.dp),
                     aminoTitle = aminoTitle,

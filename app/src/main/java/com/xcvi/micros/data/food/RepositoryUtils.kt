@@ -2,25 +2,18 @@ package com.xcvi.micros.data.food
 
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.xcvi.micros.data.food.model.FoodStats
 import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
 import com.xcvi.micros.data.food.model.entity.Portion
-import com.xcvi.micros.data.food.model.entity.Vitamins
+import com.xcvi.micros.data.food.model.entity.VitaminsFull
 import com.xcvi.micros.data.food.source.FoodDao
 import com.xcvi.micros.domain.Failure
 import com.xcvi.micros.domain.Response
-import com.xcvi.micros.domain.generateMonthsBetween
-import com.xcvi.micros.domain.generateWeeksBetween
-import com.xcvi.micros.domain.getLocalDate
-import com.xcvi.micros.domain.getStartOfMonth
-import com.xcvi.micros.domain.getStartOfWeek
 import com.xcvi.micros.domain.normalizeToWordSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDate
 
 const val LIMIT = 100
 const val PAGE_SIZE = 50
@@ -29,27 +22,6 @@ const val PAGE = 1
 
 
 
-
-suspend fun getPortion(
-    meal: Int,
-    date: Int,
-    barcode: String,
-    amount: Int,
-    dao: FoodDao
-): Portion? {
-    val exactPortion = withContext(Dispatchers.IO) {
-        dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
-    }?.scaledTo(amount.toDouble())
-
-    if (exactPortion != null) {
-        return exactPortion
-    }
-    val cachedPortion = withContext(Dispatchers.IO) {
-        dao.getPortion(barcode = barcode)
-    }?.scaledTo(amount.toDouble())?.copy(date = date, meal = meal)
-
-    return cachedPortion
-}
 
 
 
@@ -149,7 +121,7 @@ suspend fun getSummary(date: Int, dao: FoodDao): Portion =
 
         val macros = macroDeferred.await() ?: Macros()
         val minerals = mineralDeferred.await() ?: Minerals()
-        val vitamins = vitaminDeferred.await() ?: Vitamins()
+        val vitaminsFull = vitaminDeferred.await() ?: VitaminsFull()
         val aminoAcids = aminoDeferred.await() ?: AminoAcids()
 
         Portion(
@@ -164,7 +136,7 @@ suspend fun getSummary(date: Int, dao: FoodDao): Portion =
             ingredients = "",
             macros = macros,
             minerals = minerals,
-            vitamins = vitamins,
+            vitaminsFull = vitaminsFull,
             aminoAcids = aminoAcids
         )
     }

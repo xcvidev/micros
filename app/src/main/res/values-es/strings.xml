@@ -124,5 +124,8 @@
     <string name="database_error">Ocurrió un error en la base de datos. Por favor, inténtalo más tarde.</string>
     <string name="authentication_error">Error de autenticación. Por favor, inicia sesión nuevamente.</string>
     <string name="unknown_error">Ocurrió un error desconocido. Por favor, inténtalo de nuevo.</string>
+    <string name="enhance">Mejorar micronutrientes con IA</string>
+    <string name="provide_food_description">Proporciona una descripción del alimento...</string>
+    <string name="description">Descripción</string>
 
 </resources>

@@ -34,7 +34,7 @@ data class Portion(
     val minerals: Minerals = Minerals(),
 
     @Embedded(prefix = "vitamin_")
-    val vitamins: Vitamins = Vitamins(),
+    val vitaminsFull: VitaminsFull = VitaminsFull(),
 
     @Embedded(prefix = "amino_")
     val aminoAcids: AminoAcids = AminoAcids()

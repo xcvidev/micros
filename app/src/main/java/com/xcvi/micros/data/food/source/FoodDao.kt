@@ -10,7 +10,7 @@ import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
 import com.xcvi.micros.data.food.model.entity.Portion
-import com.xcvi.micros.data.food.model.entity.Vitamins
+import com.xcvi.micros.data.food.model.entity.VitaminsFull
 
 @Dao
 interface FoodDao {
@@ -36,9 +36,9 @@ interface FoodDao {
 
     // --- Vitamins ---
     @Query(sumVitaminsByDate)
-    suspend fun sumVitamins(date: Int): Vitamins?
+    suspend fun sumVitamins(date: Int): VitaminsFull?
     @Query(sumVitaminsByDateAndMeal)
-    suspend fun sumVitamins(date: Int, meal: Int): Vitamins?
+    suspend fun sumVitamins(date: Int, meal: Int): VitaminsFull?
 
     // --- Amino Acids ---
     @Query(sumAminoacidsByDate)
@@ -71,7 +71,10 @@ interface FoodDao {
     @Query("SELECT * FROM portions WHERE barcode = :barcode LIMIT 1")
     suspend fun getPortion(barcode: String): Portion?
 
+    /*
     @Query("SELECT * FROM portions WHERE barcode = :barcode AND date = :date AND meal = :mealNumber")
     suspend fun getPortion(barcode: String, date: Int, mealNumber: Int): Portion?
+
+     */
 
 }

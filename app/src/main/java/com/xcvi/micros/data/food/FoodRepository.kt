@@ -21,51 +21,35 @@ class FoodRepository(
 ) {
 
     /**
-     * Enhance Details TODO
+     * Enhance Details
      */
-    /*
+
     suspend fun enhance(
-        meal: Int,
-        date: Int,
-        barcode: String,
-        amount: Int
+        portion: Portion,
+        userDesc: String
     ): Response<Portion> = apiCacheFetch(
         apiCall = {
-            val portion = getPortion(barcode = barcode, date = date, meal = meal, amount = amount)
-            api.enhance(portion)
+            api.enhance(portion, userDesc)
         },
-        cacheCall = { upsert(listOf(it)) },
-        dbCall = { dao.getPortion(it.barcode) },
-        fallbackRequest = barcode,
-        fallbackDbCall = {
-            getPortion(barcode = it, date = date, meal = meal, amount = amount)
-        }
+        cacheCall = {
+            upsert(listOf(it))
+        },
+        dbCall = {
+            dao.getPortion(barcode = portion.barcode)
+        },
+        fallbackRequest = null,
+        fallbackDbCall = { null }
     )
 
-     */
 
-    suspend fun getPortion(
-        meal: Int,
-        date: Int,
-        barcode: String,
-        amount: Int
-    ): Response<Portion> {
+    suspend fun getPortion(barcode: String): Response<Portion> {
         try {
             val exactPortion = withContext(Dispatchers.IO) {
-                dao.getPortion(barcode = barcode, date = date, mealNumber = meal)
-            }?.scaledTo(amount.toDouble())
-
+                dao.getPortion(barcode = barcode)
+            }
             if (exactPortion != null) {
                 return Response.Success(exactPortion)
             }
-
-            val cachedPortion = withContext(Dispatchers.IO) {
-                dao.getPortion(barcode = barcode)
-            }?.scaledTo(amount.toDouble())?.copy(date = date, meal = meal)
-            if (cachedPortion != null) {
-                return Response.Success(cachedPortion)
-            }
-
             return Response.Error(Failure.Unknown)
         } catch (e: Exception) {
             println("MyLog: Error ${e.message}")
@@ -182,7 +166,7 @@ class FoodRepository(
                 date = -1,
                 meal = -1,
                 isFavorite = 1,
-                amountInGrams = 1.0
+                amountInGrams = portions.sumOf { it.amountInGrams }
             )
             withContext(Dispatchers.IO) { upsert(listOf(updatedPortion)) }
             Response.Success(Unit)

@@ -22,7 +22,7 @@ class DetailsViewModel(
         val numberPickerCalorie: Int = 0,
     )
 
-    fun getData(meal: Int, date: Int, barcode: String, amount: Int, onFailure: () -> Unit){
+    fun getData(barcode: String, amount: Int, onFailure: () -> Unit){
         viewModelScope.launch {
             updateData {
                 copy(
@@ -30,17 +30,18 @@ class DetailsViewModel(
                 )
             }
 
-            when(val res = repository.getPortion(meal, date, barcode, amount)){
+            when(val res = repository.getPortion(barcode)){
                 is Response.Error -> {
                     onFailure()
                     return@launch
                 }
                 is Response.Success -> {
+                    val scaled = res.data.scaledTo(amount*1.0)
                     updateData {
                         copy(
-                            portion = res.data,
-                            numberPickerValue = res.data.amountInGrams.roundToInt(),
-                            numberPickerCalorie = res.data.macros.calories.roundToInt(),
+                            portion = scaled,
+                            numberPickerValue = amount,
+                            numberPickerCalorie = scaled.macros.calories.roundToInt(),
                             isLoading = false
                         )
                     }
@@ -79,6 +80,37 @@ class DetailsViewModel(
                 is Response.Success -> {
                     onSuccess()
                 }
+            }
+        }
+    }
+    fun enhance(userDesc: String, onFailure: () -> Unit){
+        viewModelScope.launch{
+            val current = state.portion ?: return@launch
+            updateData {
+                copy(
+                    isLoading = true
+                )
+            }
+
+            when(
+                val enhanced = repository.enhance(current.scaledTo(100.0), userDesc)
+            ){
+                is Response.Error -> {
+                    onFailure()
+                }
+                is Response.Success -> {
+                    println("MyLog: Enhanced Vitamin c: ${enhanced.data.macros.vitaminC}")
+                    updateData {
+                        copy(
+                            portion = enhanced.data.scaledTo(numberPickerValue*1.0),
+                        )
+                    }
+                }
+            }
+            updateData {
+                copy(
+                    isLoading = false
+                )
             }
         }
     }

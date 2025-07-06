@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -56,6 +57,7 @@ fun DetailsScreen(
     vitaminTitle: String = stringResource(R.string.vitamins_for_100_g),
 ) {
     val state = viewModel.state
+    var desc by remember { mutableStateOf("") }
     var shakeTrigger by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     val shakeOffset = rememberShakeOffset(shakeTrigger) {
@@ -71,9 +73,8 @@ fun DetailsScreen(
     }
 
     OnNavigation {
-        viewModel.getData(date = date, meal = meal, amount = amount, barcode = barcode){
+        viewModel.getData(amount = amount, barcode = barcode) {
             shakeTrigger = true
-            showDialog = true
         }
     }
 
@@ -82,35 +83,61 @@ fun DetailsScreen(
     }
 
 
-    if (state.portion == null) {
-        if (showDialog){
-            AlertDialog(
-                onDismissRequest = {
-                    //showDialog = false
-                    onBack()
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            //showDialog = false
-                            onBack()
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if(desc.isNotBlank()){
+                            keyboard?.hide()
+                            focusManager.clearFocus()
+                            showDialog = false
+                            viewModel.enhance(
+                                userDesc = desc
+                            ) {
+                                shakeTrigger = true
+                            }
+                        } else{
+                            shakeTrigger = true
                         }
-                    ) {
-                        Text(text = "Ok")
                     }
-                },
-                title = {
-                    Text(text = errorTitle)
-                },
-                text = {
-                    Text(text = errorMessage)
+                ) {
+                    Text(text = "Ok")
                 }
-            )
-        } else {
-            LoadingIndicator(modifier = modifier.fillMaxSize())
-        }
-    } else {
-        val portion = state.portion
+            },
+            title = {
+                Text(stringResource(R.string.provide_food_description))
+            },
+            text = {
+                Card{
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = desc,
+                        onValueChange = {
+                            desc = it
+                        },
+                        singleLine = true,
+                        maxLines = 1,
+                        placeholder = {
+                            Text(text = stringResource(R.string.description))
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        )
+                    )
+                }
+            }
+        )
+
+    }
+
+    state.portion?.let { portion ->
         Scaffold(
             modifier = modifier
                 .fillMaxSize()
@@ -175,7 +202,7 @@ fun DetailsScreen(
                     NumberPicker(
                         initialValue = state.numberPickerValue,
                         onValueChange = {
-                            if (it > 0){
+                            if (it > 0) {
                                 viewModel.updateNumberPickerValue(it)
                             }
                         },
@@ -218,6 +245,17 @@ fun DetailsScreen(
                 }
 
                 item {
+                    TextButton(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, end = 8.dp, top = 24.dp, bottom = 8.dp),
+                        onClick = { showDialog = true }
+                    ) {
+                        Text(text = stringResource(R.string.enhance))
+                    }
+                }
+
+                item {
                     MicrosSection(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         aminoTitle = aminoTitle,
@@ -226,7 +264,7 @@ fun DetailsScreen(
                         vitaminTitle = vitaminTitle,
                         macros = portion.macros,
                         minerals = portion.minerals,
-                        vitamins = portion.vitamins,
+                        vitaminsFull = portion.vitaminsFull,
                         aminoAcids = portion.aminoAcids
                     )
                 }
@@ -236,6 +274,10 @@ fun DetailsScreen(
             }
 
         }
+    }
+
+    if (state.isLoading) {
+        LoadingIndicator(modifier = modifier.fillMaxSize())
     }
 }
 

@@ -5,13 +5,8 @@ import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
 import com.xcvi.micros.data.food.model.entity.Portion
-import com.xcvi.micros.data.food.model.entity.Vitamins
+import com.xcvi.micros.data.food.model.entity.VitaminsFull
 import com.xcvi.micros.data.food.model.entity.roundDecimals
-import com.xcvi.micros.domain.getLocalDate
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.isoDayNumber
-import kotlinx.datetime.minus
 import kotlin.math.roundToInt
 
 fun Portion.scaledCalories(newAmount: Int): Int {
@@ -40,16 +35,16 @@ fun Portion.scaledTo(newAmount: Double): Portion {
             /**
              *
              */
-            calcium  = minerals.calcium  * ratio,
-            iron  = minerals.iron  * ratio,
-            magnesium  = minerals.magnesium  * ratio,
-            potassium  = minerals.potassium  * ratio,
-            vitaminA  = vitamins.vitaminA  * ratio,
-            vitaminB  = vitamins.vitaminB1  * ratio,
-            vitaminC  = vitamins.vitaminC  * ratio,
-            vitaminD  = vitamins.vitaminD  * ratio,
-            vitaminE  = vitamins.vitaminE  * ratio,
-            vitaminK  = vitamins.vitaminK  * ratio,
+            calcium  = macros.calcium  * ratio,
+            iron  = macros.iron  * ratio,
+            magnesium  = macros.magnesium  * ratio,
+            potassium  = macros.potassium  * ratio,
+            vitaminA  = macros.vitaminA  * ratio,
+            vitaminB  = macros.vitaminB  * ratio,
+            vitaminC  = macros.vitaminC  * ratio,
+            vitaminD  = macros.vitaminD  * ratio,
+            vitaminE  = macros.vitaminE  * ratio,
+            vitaminK  = macros.vitaminK  * ratio,
 
         ),
         minerals = Minerals(
@@ -64,20 +59,20 @@ fun Portion.scaledTo(newAmount: Double): Portion {
             sodium  = minerals.sodium  * ratio,
             zinc  = minerals.zinc  * ratio
         ),
-        vitamins = Vitamins(
-            vitaminA  = vitamins.vitaminA  * ratio,
-            vitaminB1  = vitamins.vitaminB1  * ratio,
-            vitaminB2  = vitamins.vitaminB2  * ratio,
-            vitaminB3  = vitamins.vitaminB3  * ratio,
-            vitaminB4  = vitamins.vitaminB4  * ratio,
-            vitaminB5  = vitamins.vitaminB5  * ratio,
-            vitaminB6  = vitamins.vitaminB6  * ratio,
-            vitaminB9  = vitamins.vitaminB9  * ratio,
-            vitaminB12  = vitamins.vitaminB12  * ratio,
-            vitaminC  = vitamins.vitaminC  * ratio,
-            vitaminD  = vitamins.vitaminD  * ratio,
-            vitaminE  = vitamins.vitaminE  * ratio,
-            vitaminK  = vitamins.vitaminK  * ratio,
+        vitaminsFull = VitaminsFull(
+            vitaminA  = vitaminsFull.vitaminA  * ratio,
+            vitaminB1  = vitaminsFull.vitaminB1  * ratio,
+            vitaminB2  = vitaminsFull.vitaminB2  * ratio,
+            vitaminB3  = vitaminsFull.vitaminB3  * ratio,
+            vitaminB4  = vitaminsFull.vitaminB4  * ratio,
+            vitaminB5  = vitaminsFull.vitaminB5  * ratio,
+            vitaminB6  = vitaminsFull.vitaminB6  * ratio,
+            vitaminB9  = vitaminsFull.vitaminB9  * ratio,
+            vitaminB12  = vitaminsFull.vitaminB12  * ratio,
+            vitaminC  = vitaminsFull.vitaminC  * ratio,
+            vitaminD  = vitaminsFull.vitaminD  * ratio,
+            vitaminE  = vitaminsFull.vitaminE  * ratio,
+            vitaminK  = vitaminsFull.vitaminK  * ratio,
         ),
         aminoAcids = AminoAcids(
             alanine = aminoAcids.alanine * ratio,
@@ -135,6 +130,8 @@ fun ProductDTO.toPortionCache(): Portion? {
             /**
              *
              */
+
+            /*
             calcium = getValue(n.calcium_100g, e.calcium_100g) * 0.001,
             iron = getValue(n.iron_100g, e.iron_100g) * 0.001,
             magnesium = getValue(n.magnesium_100g, e.magnesium_100g) * 0.001,
@@ -163,7 +160,7 @@ fun ProductDTO.toPortionCache(): Portion? {
             fluoride  = getValue(n.fluoride, e.fluoride)
 
         ),
-        vitamins = Vitamins(
+        vitaminsFull = VitaminsFull(
             vitaminA  = getValue(n.vitaminA, e.vitaminA),
             vitaminB1  = getValue(n.vitaminB1, e.vitaminB1),
             vitaminB2  = getValue(n.vitaminB2, e.vitaminB2),
@@ -178,6 +175,9 @@ fun ProductDTO.toPortionCache(): Portion? {
             vitaminK  = getValue(n.vitaminK, e.vitaminK)
         ),
         aminoAcids = AminoAcids() // optional; fill if available
+
+             */
+        )
     )
 
     return if(portion.macros.isEmpty()) {
@@ -231,7 +231,7 @@ fun List<Portion>.summary(date: Int = 0): Portion {
                 fats = 0.0,
             ),
             minerals = Minerals(),
-            vitamins = Vitamins(),
+            vitaminsFull = VitaminsFull(),
             aminoAcids = AminoAcids()
         )
     ) { acc, portion ->
@@ -272,20 +272,20 @@ fun List<Portion>.summary(date: Int = 0): Portion {
                 sodium += portion.minerals.sodium
                 zinc += portion.minerals.zinc
             }
-            vitamins.apply {
-                vitaminA += portion.vitamins.vitaminA
-                vitaminB1 += portion.vitamins.vitaminB1
-                vitaminB2 += portion.vitamins.vitaminB2
-                vitaminB3 += portion.vitamins.vitaminB3
-                vitaminB4 += portion.vitamins.vitaminB4
-                vitaminB5 += portion.vitamins.vitaminB5
-                vitaminB6 += portion.vitamins.vitaminB6
-                vitaminB9 += portion.vitamins.vitaminB9
-                vitaminB12 += portion.vitamins.vitaminB12
-                vitaminC += portion.vitamins.vitaminC
-                vitaminD += portion.vitamins.vitaminD
-                vitaminE += portion.vitamins.vitaminE
-                vitaminK += portion.vitamins.vitaminK
+            vitaminsFull.apply {
+                vitaminA += portion.vitaminsFull.vitaminA
+                vitaminB1 += portion.vitaminsFull.vitaminB1
+                vitaminB2 += portion.vitaminsFull.vitaminB2
+                vitaminB3 += portion.vitaminsFull.vitaminB3
+                vitaminB4 += portion.vitaminsFull.vitaminB4
+                vitaminB5 += portion.vitaminsFull.vitaminB5
+                vitaminB6 += portion.vitaminsFull.vitaminB6
+                vitaminB9 += portion.vitaminsFull.vitaminB9
+                vitaminB12 += portion.vitaminsFull.vitaminB12
+                vitaminC += portion.vitaminsFull.vitaminC
+                vitaminD += portion.vitaminsFull.vitaminD
+                vitaminE += portion.vitaminsFull.vitaminE
+                vitaminK += portion.vitaminsFull.vitaminK
             }
             aminoAcids.apply {
                 alanine += portion.aminoAcids.alanine
@@ -321,7 +321,7 @@ fun Portion.roundDecimals(): Portion {
     return copy(
         macros = macros.roundDecimals(),
         minerals = minerals.roundDecimals(),
-        vitamins = vitamins.roundDecimals(),
+        vitaminsFull = vitaminsFull.roundDecimals(),
         aminoAcids = aminoAcids.roundDecimals()
     )
 }
@@ -359,8 +359,8 @@ fun List<Minerals>.sum(): Minerals {
     return total
 }
 
-fun List<Vitamins>.sum(): Vitamins {
-    val total = Vitamins()
+fun List<VitaminsFull>.sum(): VitaminsFull {
+    val total = VitaminsFull()
     forEach {
         total.vitaminA += it.vitaminA
         total.vitaminB1 += it.vitaminB1

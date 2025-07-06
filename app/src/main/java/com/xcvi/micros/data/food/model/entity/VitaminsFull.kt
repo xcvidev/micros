@@ -6,7 +6,7 @@ import com.xcvi.micros.domain.roundDecimals
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Vitamins(
+data class VitaminsFull(
     var vitaminA: Double = 0.0,
     var vitaminB1: Double = 0.0,
     var vitaminB2: Double = 0.0,
@@ -21,7 +21,7 @@ data class Vitamins(
     var vitaminE: Double = 0.0,
     var vitaminK: Double = 0.0
 )
-fun Vitamins.toLabeledPairs(context: Context): List<Pair<String, String>> {
+fun VitaminsFull.toLabeledPairs(context: Context): List<Pair<String, String>> {
     return listOf(
         context.getString(R.string.vitaminA) to "${vitaminA} µg",
         context.getString(R.string.vitaminB1) to "${vitaminB1} mg",
@@ -39,7 +39,7 @@ fun Vitamins.toLabeledPairs(context: Context): List<Pair<String, String>> {
     )
 }
 
-fun Vitamins.roundDecimals(): Vitamins {
+fun VitaminsFull.roundDecimals(): VitaminsFull {
     return copy(
         vitaminA = vitaminA.roundDecimals(),
         vitaminB1 = vitaminB1.roundDecimals(),

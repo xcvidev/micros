@@ -123,4 +123,7 @@
     <string name="database_error">Si è verificato un errore nel database. Riprova più tardi.</string>
     <string name="authentication_error">Autenticazione fallita. Effettua nuovamente il login.</string>
     <string name="unknown_error">Si è verificato un errore sconosciuto. Riprova.</string>
+    <string name="enhance">Migliora i micronutrienti con l\'IA</string>
+    <string name="provide_food_description">Fornisci una descrizione del cibo...</string>
+    <string name="description">Descrizione</string>
 </resources>

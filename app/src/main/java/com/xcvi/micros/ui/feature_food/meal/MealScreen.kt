@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.xcvi.micros.R
 import com.xcvi.micros.data.food.model.entity.Portion
+import com.xcvi.micros.data.food.model.entity.displayName
 import com.xcvi.micros.domain.roundDecimals
 import com.xcvi.micros.ui.core.OnNavigation
 import com.xcvi.micros.ui.core.rememberShakeOffset
@@ -237,7 +238,7 @@ fun MealScreen(
                     vitaminTitle = vitaminTitle,
                     macros = summary.macros,
                     minerals = summary.minerals,
-                    vitamins = summary.vitamins,
+                    vitaminsFull = summary.vitaminsFull,
                     aminoAcids = summary.aminoAcids
                 )
                 Spacer(modifier = Modifier.height(150.dp))
@@ -267,7 +268,7 @@ private fun PortionItem(
         ListItem(
             headlineContent = {
                 Text(
-                    text = item.name,
+                    text = item.displayName(),
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                     fontWeight = MaterialTheme.typography.bodyLarge.fontWeight,
                     style = MaterialTheme.typography.bodyLarge,

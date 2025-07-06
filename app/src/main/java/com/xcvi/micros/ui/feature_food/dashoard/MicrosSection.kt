@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.xcvi.micros.data.food.model.entity.AminoAcids
 import com.xcvi.micros.data.food.model.entity.Macros
 import com.xcvi.micros.data.food.model.entity.Minerals
-import com.xcvi.micros.data.food.model.entity.Vitamins
+import com.xcvi.micros.data.food.model.entity.VitaminsFull
 import com.xcvi.micros.data.food.model.entity.toLabeledPairs
 
 
@@ -24,7 +24,7 @@ fun MicrosSection(
     modifier: Modifier = Modifier,
     macros: Macros = Macros(),
     minerals: Minerals = Minerals(),
-    vitamins: Vitamins = Vitamins(),
+    vitaminsFull: VitaminsFull = VitaminsFull(),
     aminoAcids: AminoAcids = AminoAcids(),
     aminoTitle: String,
     macroTitle: String,
@@ -35,7 +35,7 @@ fun MicrosSection(
     val context = LocalContext.current
     val macrosLabeled = macros.toLabeledPairs(context).drop(1)
     val mineralsLabeled = minerals.toLabeledPairs(context)
-    val vitaminsLabeled = vitamins.toLabeledPairs(context)
+    val vitaminsLabeled = vitaminsFull.toLabeledPairs(context)
     val aminoAcidsLabeled = aminoAcids.toLabeledPairs(context)
 
     Column(

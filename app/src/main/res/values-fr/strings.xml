@@ -124,4 +124,7 @@
     <string name="database_error">Une erreur de base de données est survenue. Veuillez réessayer plus tard.</string>
     <string name="authentication_error">Échec de l\'authentification. Veuillez vous reconnecter.</string>
     <string name="unknown_error">Une erreur inconnue est survenue. Veuillez réessayer.</string>
+    <string name="enhance">Améliorer les micronutriments avec l\'IA</string>
+    <string name="provide_food_description">Fournissez une description de l\'aliment...</string>
+    <string name="description">Description</string>
 </resources>
